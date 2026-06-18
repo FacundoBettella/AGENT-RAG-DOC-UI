@@ -1,5 +1,12 @@
 node_modules/
 dist/
+
+# Claude Code harness (local tooling, no es parte del producto)
+.claude/
+
+# Editor local
+.vscode/
+
 .env
 .env.local
 .env.*.local
