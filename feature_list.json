@@ -1,0 +1,101 @@
+{
+  "project": "mercurial-hr-chat",
+  "description": "Frontend React para consultas de RR.HH. al backend Python local. Sistema Mercurial.",
+  "rules": {
+    "team_mode": true,
+    "max_in_progress_per_owner": 1,
+    "require_tests_to_close": true,
+    "require_approved_spec_to_implement": true,
+    "valid_status": [
+      "pending",
+      "spec_ready",
+      "in_progress",
+      "done",
+      "blocked"
+    ],
+    "sdd_required_when": "feature has \"sdd\": true"
+  },
+  "features": [
+    {
+      "id": 1,
+      "name": "app-shell",
+      "title": "Shell de la aplicación",
+      "description": "Header Mercurial, layout global, tokens de diseño Zelda via styled-components.",
+      "owner": "Facundo Bettella",
+      "sdd": true,
+      "status": "done"
+    },
+    {
+      "id": 2,
+      "name": "hr-chat",
+      "title": "Chat de consultas RR.HH.",
+      "description": "Interfaz de pregunta/respuesta simple con historial visual, loading animado y error inline con reintento.",
+      "owner": "Facundo Bettella",
+      "sdd": true,
+      "status": "done"
+    }
+    ,{
+      "id": 3,
+      "name": "visual-redesign",
+      "title": "Rediseño visual y tema dinámico",
+      "description": "Modernizar UI con tema light/dark persistido, menú engranaje, caduceo en header y React Router para navegación a /rag.",
+      "owner": "Facundo Bettella",
+      "sdd": true,
+      "status": "done"
+    },
+    {
+      "id": 4,
+      "name": "rag-form",
+      "title": "Formulario de carga RAG",
+      "description": "Pantalla /rag con file picker múltiple .txt, Loading reutilizable, feedback de éxito/error y stub de ragService.",
+      "owner": "Facundo Bettella",
+      "sdd": true,
+      "status": "done"
+    },
+    {
+      "id": 5,
+      "name": "api-integration",
+      "title": "Integración con endpoints reales",
+      "description": "Reemplazar stubs de hrService (/api/query) y ragService (/api/ingest) con fetch real. /api/evaluate fuera de scope (postergado).",
+      "owner": "Facundo Bettella",
+      "sdd": true,
+      "status": "done"
+    },
+    {
+      "id": 6,
+      "name": "analytics",
+      "title": "Tracking de interacciones de usuario",
+      "description": "Registrar eventos clave (clicks en botones, envío de preguntas al chat, envío del formulario RAG) mediante un analyticsService interno. Sin librería externa.",
+      "owner": "Facundo Bettella",
+      "sdd": true,
+      "status": "done"
+    },
+    {
+      "id": 7,
+      "name": "rag-form-v2",
+      "title": "Rediseño del formulario de carga RAG",
+      "description": "Reemplazar RagPage con formulario moderno: validación de tamaño (máx por archivo y total), preview de archivos seleccionados, UX mejorada respetando tokens Zelda.",
+      "owner": "Facundo Bettella",
+      "sdd": true,
+      "status": "done"
+    },
+    {
+      "id": 8,
+      "name": "header-polish",
+      "title": "Pulido del header: logo clickeable y subtítulo inline",
+      "description": "Hacer que 'Mercurial' en el header sea un link que navega a /. Reubicar el subtítulo para que quede inline junto al título, no debajo suelto.",
+      "owner": "Facundo Bettella",
+      "sdd": true,
+      "status": "done"
+    },
+    {
+      "id": 9,
+      "name": "faq-section",
+      "title": "Sección de preguntas frecuentes",
+      "description": "Ruta /faq con preguntas y respuestas sobre qué hace el sistema, qué podés consultar y cómo funciona el RAG. Accesible desde un footer global.",
+      "owner": "Facundo Bettella",
+      "sdd": true,
+      "status": "done"
+    }
+  ]
+}
