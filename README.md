@@ -23,7 +23,7 @@ Este repositorio publica solo los artefactos operativos del harness en el reposi
 ## Vista Rapida
 
 | Que es | Para que sirve |
-|---|---|
+| --- | --- |
 | Harness multiagente | Coordinar todo el ciclo de una feature, de idea a cierre |
 | Gherkin + TDD | Reducir ambiguedad antes de programar |
 | Human in the loop | Mantener decisiones de producto en manos humanas |
@@ -136,7 +136,7 @@ compartidos del harness y artefactos personales/locales.
 ### Artefactos publicados al repo consumible
 
 | Artefacto | Se publica | Motivo |
-|---|---|---|
+| --- | --- | --- |
 | `feature_list.json` | Si | Es la lista operativa de tareas/estado del proyecto. |
 | `features/` | Si | Contiene los contratos Gherkin consumibles por cualquier repo implementador. |
 | `init.sh` | Si | Define la verificacion minima comun del harness. |
@@ -145,7 +145,7 @@ compartidos del harness y artefactos personales/locales.
 ### Artefactos internos compartidos del harness
 
 | Artefacto | Se publica al repo consumible | Motivo |
-|---|---|---|
+| --- | --- | --- |
 | `project-spec.md` | No | Es conocimiento funcional compartible dentro del equipo del harness. Registra decisiones, casos limite y trade-offs previos al `.feature`. |
 | `AGENTS.md` | No | Documenta reglas operativas internas del harness. |
 | `CHECKPOINTS.md` | No | Define criterios internos de validacion/cierre. |
@@ -155,7 +155,7 @@ compartidos del harness y artefactos personales/locales.
 ### Artefactos personales/locales
 
 | Artefacto | Se publica | Motivo |
-|---|---|---|
+| --- | --- | --- |
 | `progress/current.md` | No | Seguimiento local de la sesion actual. |
 | `progress/history.md` | No | Historial local de sesiones. |
 
@@ -187,7 +187,7 @@ Luego cada dev mantiene su bitacora local sin ruido de merges.
 ## Agentes
 
 | Agente | Rol | Salida principal |
-|---|---|---|
+| --- | --- | --- |
 | `tech-lead` | Orquesta fases y transiciones | `feature_list.json` |
 | `analyst` | Conversa y negocia spec | `project-spec.md` |
 | `bdd-writer` | Convierte spec en escenarios | `features/<name>.feature` |

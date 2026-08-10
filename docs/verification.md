@@ -3,6 +3,10 @@
 > Regla de oro: **el agente no dice "funciona", lo demuestra**.
 > Toda feature termina con evidencia ejecutable, no con afirmaciones.
 
+> **Nota de stack:** los principios de este doc son agnósticos; los ejemplos
+> de código (RTL, vitest) son del perfil react. Tu perfil activo tiene sus
+> propias guías en `profiles/active/docs/`.
+
 ## Niveles de verificación
 
 ### Nivel 1 — Tests unitarios (obligatorio)
@@ -13,8 +17,18 @@ Toda función pública en `src/services/` tiene al menos un test que:
 2. Cubre al menos un camino de error si la función puede fallar.
 
 ```bash
-npm test -- --run
+bash profiles/active/test.sh   # cadena completa: typecheck + lint + tests
+npm test -- --run              # solo el runner (equivale al modo fast; ejemplo del perfil react)
 ```
+
+El runner no chequea tipos (vitest transpila borrando las anotaciones): el
+typecheck y el lint de la cadena no son opcionales para dar una feature por
+verificada.
+
+**Sin perfil activo:** el hook de verificación corre `npm test -- --run` si
+detecta `package.json` en la raíz; si no hay ni perfil ni `package.json`,
+avisa que no hay runner configurado en vez de asumir un stack — activá un
+perfil (`./init.sh`) o corré la suite de tu stack a mano.
 
 ### Nivel 2 — Tests de componentes y hooks (obligatorio para features de UI)
 
@@ -43,18 +57,6 @@ it("llama a onSuccess cuando el login es exitoso", async () => {
   expect(onSuccess).toHaveBeenCalledTimes(1);
 });
 ```
-
-### Nivel 3 — Prueba de mutación (obligatorio antes de `done`)
-
-Una suite verde no garantiza que los tests sirvan. La prueba de mutación
-verifica que algún test falla cuando el código se rompe:
-
-```bash
-node tools/mutate.mjs src/services/authService.ts
-```
-
-El score debe ser **100% sobre las líneas nuevas o tocadas** por la feature
-(ver `docs/mutation-testing.md`).
 
 ## Patrones de test en RTL
 
@@ -100,3 +102,12 @@ it("expone isLoading = true mientras hace fetch", async () => {
   (aporta cero cobertura de comportamiento).
 - Capturas de pantalla manuales.
 - "Lo probé en el navegador" sin test automático.
+
+## Fidelidad visual (features con pantalla)
+
+No es un nivel de verificación del agente — es una puerta humana. Ni el
+`developer` ni el `reviewer` levantan browser, sacan capturas ni instalan
+Playwright/Chromium para chequear esto: el `developer` deja el dev server
+corriendo y devuelve la URL; el `tech-lead` se la pasa al humano (junto con
+el mockup de referencia si existe en `progress/mockups/<name>/`) y espera su
+OK antes de mandar a review. Ver "Puerta visual" en `agents/tech-lead.md`.

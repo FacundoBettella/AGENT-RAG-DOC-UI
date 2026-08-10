@@ -1,38 +1,42 @@
-# El flujo Uncle Bob (Harness Engineering, edición artesano — React)
+# El flujo Uncle Bob (Harness Engineering, edición artesano)
 
-> Esta rama organiza el desarrollo de un **frontend React** alrededor del
-> proceso que Robert C. Martin describe en su hilo: **conversar la spec,
-> destilarla en escenarios Gherkin, tallar el código con TDD estricto,
-> podar con juicio y validar con prueba de mutación**. El dominio de la app
-> es deliberadamente simple; lo que enseña el repo es el *proceso*.
+> Este flujo organiza el desarrollo alrededor del proceso que Robert C.
+> Martin describe en su hilo: **conversar la spec, destilarla en escenarios
+> Gherkin, tallar el código con TDD estricto (o test-after, si el humano lo
+> prefiere para esa feature) y podar con juicio**. Lo que enseña este doc
+> es el *proceso* — es agnóstico al stack; las menciones concretas (RTL,
+> Vitest) son del perfil react y tu perfil activo tiene sus equivalentes en
+> `profiles/active/`.
 
 ## El pipeline de un vistazo
 
 ```
 pending
-  │  analyst — CONVERSACIÓN  ─────────────────────►  project-spec.md
+  │  analyst — CONVERSACIÓN  ─────────────────────►  specs/<name>/spec.md
   │      "We debate various topics and decisions."
   │
   │  bdd-writer — DESTILACIÓN ─────────────────────►  features/<name>.feature
-  │      ".feature files from the project-spec.md"
+  │      ".feature files from the spec"
   │
   ▼  ⏸  PUERTA HUMANA: el humano aprueba los escenarios (el contrato)
   │
+  │  ⏸  PUERTA HUMANA: ¿TDD estricto o test-after? (por feature)
+  │
 in_progress
-  │  developer — ROJO → VERDE → REFACTOR ──────────►  src/ + tests/
-  │      un test a la vez; las Tres Leyes del TDD; RTL + Vitest
+  │  developer — TDD (Rojo→Verde→Refactor) o test-after ───►  src/ + tests/ + specs/<name>/tdd.md
+  │      TDD: un test a la vez, las Tres Leyes. Test-after: implementa y
+  │      luego blinda con tests que muerden. Ver docs/tdd.md y
+  │      docs/testing-test-after.md.
   │
   │  reviewer — REVIEW ────────────────────────────►  veredicto de review
   │      "The review step is the whole game. Agents draft, judgment prunes."
-  │
-  │  qa — MUTACIÓN ────────────────────────────────►  score de mutación
-  │      "Mutation testing is resource-heavy, but the ROI is worth every cycle."
   ▼
 done
 ```
 
-Una sola feature a la vez. Una sola puerta de aprobación humana: sobre los
-escenarios Gherkin, **antes** de escribir producción.
+Una sola feature a la vez. Dos puertas humanas, ambas **antes** de que
+exista producción: los escenarios Gherkin (el contrato) y el modo de
+implementación (TDD o test-after, por feature).
 
 ## Por qué este orden (los insights del hilo)
 
@@ -40,12 +44,25 @@ escenarios Gherkin, **antes** de escribir producción.
 
 El humano no entrega un documento cerrado. Debate con el `analyst`:
 casos límite, contratos de salida, alternativas descartadas. El resultado,
-`project-spec.md`, es el acuerdo razonado — incluidas las **decisiones** y
+`specs/<feature>/spec.md`, es el acuerdo razonado — incluidas las **decisiones** y
 su porqué. Una spec sin debate esconde los huecos; el debate los saca.
+
+**Protocolo batch-first:** como el `analyst` corre como subagente, cada
+pregunta al humano viaja `analyst → tech-lead → humano → tech-lead → analyst`
+(dos saltos de agente + una espera humana). Para no pagar ese peaje por
+pregunta, el `analyst` abre siempre con un **mensaje-panorama**: todas sus
+preguntas en un solo mensaje, separadas en *para responder de una* (cada una
+con recomendación y fundamento citado — un precedente o una razón concreta)
+y *para debatir* (las encadenadas o estructurales). El humano contesta "ok a
+todo" a lo trivial y el ida y vuelta queda reservado para lo que lo merece.
+Las decisiones que repiten un precedente se **heredan por referencia**
+(`hereda Decisión N de specs/<hermana>/spec.md`) en vez de re-redactarse.
+El tech-lead pasa los specs precedentes en el prompt de lanzamiento.
+Spec de esta mejora: feature #17 `spec-rigor-calibration`.
 
 ### 2. Gherkin convierte la prosa en un contrato ejecutable
 
-> "Once the project-spec.md is done, I have it create a set of .feature files."
+> "Once the spec is done, I have it create a set of .feature files."
 
 Cada comportamiento se vuelve un `Scenario` con `Given/When/Then`
 verificable. Esto es lo que el humano firma. A partir de aquí, la
@@ -57,13 +74,30 @@ Aprobar tarde (cuando ya hay código) es caro. Aprobar el `.feature` es
 barato y es el punto de máximo apalancamiento: un escenario mal definido
 arrastra todo el TDD. El `tech-lead` **para** aquí y espera.
 
-### 4. TDD estricto: un test a la vez
+### 4. TDD por defecto, pero es una elección del humano
 
 > "single test followed by code (TDD)"
 
-No se escriben todos los tests por adelantado. Se vive el ciclo pequeño:
-un test rojo → el mínimo verde → refactor en verde. Las Tres Leyes en
-`docs/tdd.md`. El código que ningún test pidió no existe.
+El modo por defecto de este harness es TDD estricto: un test rojo → el
+mínimo verde → refactor en verde, sin escribir toda la batería por
+adelantado. Las Tres Leyes en `docs/tdd.md`. El código que ningún test
+pidió no existe.
+
+Pero TDD estricto es una disciplina cara (un ciclo por escenario, muchas
+corridas de suite) y no siempre es el trade-off que el humano quiere para
+una feature dada. Por eso, **antes de lanzar al `developer`**, el
+`tech-lead` pregunta: ¿TDD estricto o implementación directa con tests
+posteriores ("test-after")? Es una puerta humana más, liviana, feature
+por feature — no un ajuste global.
+
+Lo que **no** es negociable en ningún modo: cada escenario `@s` del
+`.feature` termina cubierto por al menos un test concreto que confirme el
+comportamiento (camino feliz y, si aplica, camino de error), y ese test
+tiene que morder — pasar si el código está bien, fallar si se rompe. En
+TDD eso lo garantiza el ciclo Rojo→Verde. En test-after lo garantiza el
+protocolo de `docs/testing-test-after.md`: implementar, escribir el test
+después, y demostrar a mano que falla si se rompe la implementación.
+`specs/<feature>/tdd.md` registra qué modo se usó.
 
 ### 5. El review es el juego entero
 
@@ -73,24 +107,19 @@ Generar borradores es barato (el modelo teclea infinito). El valor escaso
 es el **juicio** que decide qué sobrevive. El `reviewer` no edita: poda. Si un
 escenario no tiene test, o hay código que nadie pidió, rechaza.
 
-### 6. La validación es el nuevo cuello de botella, y es compute-bound
-
-> "Raw computer power is the limiting factor." / "Mutation testing is resource-heavy, but the ROI on code correctness is worth every cycle."
-
-Una suite verde solo dice que el código no explota, no que los tests
-sirvan. La prueba de mutación introduce defectos y exige que algún test
-falle. Es cara en CPU —reejecuta la suite por cada mutante— pero es la
-medida real de si la red atrapa peces. Ver `docs/mutation-testing.md`.
-
 ## Mapa de artefactos (quién escribe qué)
 
 | Archivo                          | Lo escribe             | Contiene                                            |
 |----------------------------------|------------------------|-----------------------------------------------------|
-| `project-spec.md`                | analyst                | Spec conversada: propósito, contrato, decisiones    |
+| `project-spec.md`                | tech-lead (índice)     | Overview de proyecto + índice de features con links |
+| `specs/<name>/spec.md`           | analyst                | Propósito + Contrato + Decisiones de la feature     |
 | `features/<name>.feature`        | bdd-writer             | Escenarios Gherkin `@s1..@sn` (el contrato firmado) |
-| `src/`, `tests/`                 | developer              | Código y tests, tallados por TDD                    |
-| `specs/<name>/` (opcional)       | agentes                | Registro opcional de TDD/review/mutación            |
+| `src/`, `tests/`                 | developer              | Código y tests, en TDD o test-after (elección humana) |
+| `specs/<name>/tdd.md`            | developer              | Modo usado + mapa `@s → test` (trazabilidad obligatoria) |
 | `feature_list.json`              | tech-lead / developer  | `pending → spec_ready → in_progress → done`         |
 
 Regla anti-teléfono-descompuesto: los subagentes escriben en disco y
 devuelven una línea de referencia. El contenido no circula por chat.
+
+Regla de lectura dirigida: el `bdd-writer` y el `reviewer` leen **solo**
+`specs/<feature>/spec.md` de la feature en curso — no el proyecto entero.

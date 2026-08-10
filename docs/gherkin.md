@@ -7,6 +7,10 @@
 Los archivos viven en `features/<name>.feature`, donde `<name>` coincide
 con el campo `name` de `feature_list.json`.
 
+> **Nota de stack:** los principios son agnósticos; los ejemplos de mapeo a
+> tests (RTL, `renderHook`) son del perfil react. Tu perfil activo tiene sus
+> equivalentes en `profiles/active/docs/`.
+
 ## Estructura
 
 ```gherkin
@@ -104,6 +108,8 @@ escenario:
 @s4 → it("muestra error de credenciales inválidas")
 ```
 
-El `developer` escribe estos tests uno a uno (Rojo→Verde→Refactor) y
-deja el mapa en `progress/tdd_<name>.md`. Así el `.feature` sigue siendo la
-fuente de verdad legible por el humano, sin pagar el coste de un framework.
+El `developer` escribe estos tests uno a uno (Rojo→Verde→Refactor, si el
+modo elegido es TDD estricto) o después de implementar (modo test-after,
+ver `docs/testing-test-after.md`), y deja el mapa en
+`specs/<feature>/tdd.md`. Así el `.feature` sigue siendo la fuente de
+verdad legible por el humano, sin pagar el coste de un framework.

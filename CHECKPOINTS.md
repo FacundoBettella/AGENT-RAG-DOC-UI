@@ -15,24 +15,26 @@
 - [ ] En modo individual: como maximo una feature en `in_progress`.
 - [ ] En modo squad: como maximo una feature `in_progress` por `owner`.
 - [ ] Toda feature `done` tiene tests asociados que pasan.
-- [ ] No se versionan bitácoras personales (`progress/current.md`,
-      `progress/history.md`).
+- [ ] No se versiona la bitácora personal (`progress/current.md`).
 
 ## C3 — El código respeta la arquitectura
 
-- [ ] `src/` solo contiene las capas previstas en `[]/docs/architecture.md`.
-- [ ] Ningún componente llama a `fetch` / `axios` directamente.
-- [ ] No hay `any` en TypeScript sin justificación documentada.
-- [ ] No hay `console.log` de debug ni TODOs sin contexto.
+- [ ] `src/` solo contiene las capas previstas en `docs/architecture.md`.
+- [ ] Las llamadas a servicios externos (HTTP, DB) viven en la capa de
+      servicios — nunca en la capa de presentación o de entrada.
+- [ ] No hay logs de debug ni TODOs sin contexto.
+- [ ] Los checks específicos del stack (tipado, patrones del framework) se
+      aplican desde `profiles/active/reviewer-checklist.md` (capa de perfil).
 
 ## C4 — La verificación es real
 
-- [ ] `tests/` (o `src/**/*.test.tsx`) tiene al menos un test por módulo
-      expuesto en `src/`.
-- [ ] Los tests usan `@testing-library/react` (RTL): queries por rol
-      accesible (`getByRole`, `getByLabelText`), no por `className`.
-- [ ] Los services se mockean; no se hacen llamadas HTTP reales en los tests.
-- [ ] `npm test -- --run` muestra > 0 tests y todos verdes.
+- [ ] Cada módulo expuesto en `src/` tiene al menos un test.
+- [ ] Los tests verifican comportamiento observable, no implementación
+      interna (los patrones concretos del stack: capa de perfil).
+- [ ] Los servicios externos se mockean; no hay llamadas reales en los tests.
+- [ ] La suite del perfil activo (`bash profiles/active/test.sh`) muestra al
+      menos un test y todos verdes. Sin perfil activo, el fallback depende
+      del stack detectado en el proyecto — ver `docs/verification.md`.
 
 ## C5 — La sesión se cerró bien
 
@@ -44,16 +46,9 @@
 - [ ] Toda feature con `"sdd": true` en estado `spec_ready`, `in_progress`
       o `done` tiene su `features/<name>.feature`.
 - [ ] El `.feature` usa Gherkin con escenarios tagueados `@s1`, `@s2`, …
-      y cada `Then` afirma algo medible (ver `[]/docs/gherkin.md`).
+      y cada `Then` afirma algo medible (ver `docs/gherkin.md`).
 - [ ] Cada escenario `@s` está cubierto por al menos un test concreto en
       `tests/`.
 
-## C7 — Prueba de mutación
-
-- [ ] La feature `done` superó la prueba de mutación
-      (`node tools/mutate.mjs src/<archivo>.ts`) con la puntuación por
-      encima del umbral de `[]/docs/mutation-testing.md`.
-
 **Cómo usar este archivo:** el agente `reviewer` (`.claude/agents/reviewer.md`)
-recorre C1-C6 y el `qa` valida C7. Se rechaza el cierre de
-sesión si quedan boxes vacíos.
+recorre C1-C6. Se rechaza el cierre de sesión si quedan boxes vacíos.

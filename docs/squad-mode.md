@@ -5,8 +5,9 @@ Este documento define los dos flujos oficiales del harness:
 - modo individual,
 - modo equipo (squad).
 
-El objetivo es usar el mismo pipeline funcional (spec -> gherkin -> tdd ->
-review -> mutacion), cambiando solo las reglas de coordinacion.
+El objetivo es usar el mismo pipeline funcional (spec -> gherkin ->
+implementacion (TDD o test-after) -> review), cambiando solo
+las reglas de coordinacion.
 
 ## Modo Individual
 
@@ -24,12 +25,12 @@ Usalo cuando una sola persona lleva el proyecto o una rama aislada.
 
 ### Checklist de ejecucion
 
-- Conversar spec en `project-spec.md`.
+- Conversar spec en `specs/<name>/spec.md` (el `tech-lead` mantiene el índice en `project-spec.md`).
 - Destilar contrato en `features/<name>.feature`.
 - Aprobacion humana del `.feature`.
-- Implementar TDD en `src/` y `tests/`.
+- Eleccion humana de modo (TDD estricto o test-after) para la feature.
+- Implementar en `src/` y `tests/` segun el modo elegido.
 - Correr review.
-- Correr mutacion.
 
 ### Checklist de cierre
 
@@ -62,15 +63,13 @@ En `rules`:
 ### Que va al repo (compartido)
 
 - `feature_list.json`
-- `project-spec.md` (o `specs/<name>/spec.md`)
+- `project-spec.md` (índice) y `specs/<name>/spec.md` (spec por feature)
 - `features/<name>.feature`
 - `src/`, `tests/`
 
 ### Que NO va al repo (personal)
 
 - `progress/current.md`
-- `progress/history.md`
-- `progress/local/`
 
 ### Checklist de inicio por developer
 
@@ -87,15 +86,15 @@ En `rules`:
 ## Reglas Comunes A Ambos Modos
 
 - `project-spec.md` y `features/<name>.feature` son artefactos compartidos.
-- No cerrar una feature sin review y sin mutacion dentro del umbral.
+- No cerrar una feature sin review.
 - Si hay ambiguedad de negocio, resolver primero contrato, luego codigo.
 
 ## Migracion Rapida A Squad
 
-Si `progress/current.md` o `progress/history.md` ya estaban trackeados:
+Si `progress/current.md` ya estaba trackeado:
 
 ```bash
-git rm --cached progress/current.md progress/history.md
+git rm --cached progress/current.md
 ```
 
 Luego cada dev mantiene su bitacora local sin ruido de merges.

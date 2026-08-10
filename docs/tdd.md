@@ -4,6 +4,17 @@
 > followed by code (TDD)?" — La respuesta de esta rama: **single test
 > followed by code**. Un test a la vez. Nunca toda la batería por delante.
 
+> **Nota de stack:** los principios de este doc son agnósticos; los ejemplos
+> de código son del perfil react. Tu perfil activo tiene sus propias guías en
+> `profiles/active/docs/`.
+
+> **Nota de modo:** este doc aplica cuando el humano eligió TDD estricto
+> para la feature (ver `docs/workflow.md` §4). Si eligió la alternativa,
+> el `developer` sigue `docs/testing-test-after.md` en su lugar — la
+> exigencia de cobertura por escenario (`@s → test`) es la misma en ambos
+> modos, solo cambia el orden código/test y cómo se demuestra que el test
+> muerde.
+
 ## Las Tres Leyes del TDD
 
 1. **No escribes código de producción** salvo para hacer pasar un test que
@@ -109,7 +120,7 @@ export async function login(email: string, password: string) {
 ## Trazabilidad obligatoria
 
 Al cerrar, cada `@s` debe estar cubierto por al menos un test concreto.
-El `developer` escribe el mapa en `progress/tdd_<name>.md`:
+El `developer` escribe el mapa en `specs/<feature>/tdd.md`:
 
 ```markdown
 ## Trazabilidad
@@ -118,8 +129,7 @@ El `developer` escribe el mapa en `progress/tdd_<name>.md`:
 - @s3 (llama al service con las credenciales) → LoginForm.test.tsx: "llama a login"
 ```
 
-El `reviewer` rechaza si algún `@s` queda sin test, y el `qa`
-rechaza si los tests existen pero no muerden.
+El `reviewer` rechaza si algún `@s` queda sin test.
 
 ## Olores que el `reviewer` busca
 
