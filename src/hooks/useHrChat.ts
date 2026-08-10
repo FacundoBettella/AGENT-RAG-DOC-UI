@@ -1,10 +1,13 @@
 import { useState, useCallback } from 'react'
-import { hrService } from '../services/hrService'
+import { hrService, type HrChunk } from '../services/hrService'
 import { analyticsService } from '../services/analyticsService'
 
 export interface Exchange {
   question: string
   answer: string
+  chunks: HrChunk[]
+  askedAt: number
+  answeredAt: number
 }
 
 export interface UseHrChatReturn {
@@ -31,6 +34,7 @@ export function useHrChat(): UseHrChatReturn {
     const trimmed = question.trim()
     if (!trimmed) return
 
+    const askedAt = Date.now()
     setLastQuestion(trimmed)
     setPendingQuestion(trimmed)
     setInputValue('')
@@ -39,8 +43,11 @@ export function useHrChat(): UseHrChatReturn {
     analyticsService.trackEvent('chat_message_sent', { question_length: trimmed.length })
 
     try {
-      const answer = await hrService.query(trimmed)
-      setExchanges((prev) => [...prev, { question: trimmed, answer }])
+      const { answer, chunks } = await hrService.query(trimmed)
+      setExchanges((prev) => [
+        ...prev,
+        { question: trimmed, answer, chunks, askedAt, answeredAt: Date.now() },
+      ])
       setPendingQuestion(null)
     } catch {
       setError('No se pudo obtener respuesta. Intentá de nuevo.')

@@ -96,6 +96,58 @@
       "owner": "Facundo Bettella",
       "sdd": true,
       "status": "done"
+    },
+    {
+      "id": 10,
+      "name": "design-system-shell",
+      "title": "Migración a Tailwind y sidebar de navegación global",
+      "description": "Reemplazar styled-components/tokens Zelda por Tailwind + la paleta Material Design 3 del mockup 'Sylvan Logic'. Sustituir el header actual por un sidebar de navegación global (Analizador de Contratos, Chatbot IA, Configuración) aplicado a todas las rutas existentes y nuevas. Feature base de la que dependen design-system-shell-derivadas 11, 12 y 13.",
+      "owner": "Facundo Bettella",
+      "sdd": true,
+      "status": "done",
+      "mode": "test-after",
+      "measure": false
+    },
+    {
+      "id": 11,
+      "name": "hr-chat-redesign",
+      "title": "Rediseño visual del chat de RR.HH.",
+      "description": "Rediseñar HrChat con el layout del mockup (burbujas de conversación, chips de sugerencia, panel de contexto lateral con acciones rápidas y documentos activos reales via chunks_related), sobre el nuevo shell (feature 10). Incluye fix de bug real: hrService.ts lee data.result pero la API responde query_result.system_answer (chat roto contra backend real hoy).",
+      "owner": "Facundo Bettella",
+      "sdd": true,
+      "status": "done",
+      "mode": "test-after",
+      "measure": false,
+      "depends_on": [10]
+    },
+    {
+      "id": 12,
+      "name": "contract-analysis",
+      "title": "Analizador de contratos (DOC AGENT API)",
+      "description": "Pantalla nueva con 2 file inputs de imagen (contrato original y enmienda, ambos requeridos) que llama a POST /analysis contra DOC AGENT API y muestra el resultado (sections_changed, topics_touched, summary_of_the_change). Requiere base URL propia (VITE_DOC_AGENT_API_BASE_URL), distinta de la del RAG AGENT API.",
+      "owner": "Facundo Bettella",
+      "sdd": true,
+      "status": "pending",
+      "depends_on": [10]
+    },
+    {
+      "id": 13,
+      "name": "prompts-config",
+      "title": "Configuración: editor de prompts de agentes",
+      "description": "Sección 'Configuración' del sidebar para ver y editar los system prompts de los dos agentes fijos de DOC AGENT API (contextualization_agent, extraction_agent) vía GET/PUT /prompts. Sin alta ni baja, solo lectura y edición de los 2 registros existentes.",
+      "owner": "Facundo Bettella",
+      "sdd": true,
+      "status": "pending",
+      "depends_on": [10]
+    },
+    {
+      "id": 14,
+      "name": "rag-domain-metadata",
+      "title": "Selección de dominio al cargar conocimiento",
+      "description": "El RAG AGENT API exige domain (\"hr\"|\"tech\"|\"finance\") en POST /api/ingest, pero ragService.ts hoy solo manda documents — la llamada real falla. Agregar selector de dominio a /rag: un dominio por carga (aplica a toda la tanda de archivos), enviado en el payload. Backlog, no arrancar hasta que se confirme.",
+      "owner": "Facundo Bettella",
+      "sdd": true,
+      "status": "pending"
     }
   ]
 }

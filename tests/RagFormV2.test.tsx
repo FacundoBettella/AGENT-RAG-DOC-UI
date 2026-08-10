@@ -2,7 +2,7 @@ import { render, screen, fireEvent, waitFor, act, renderHook } from '@testing-li
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import RagPage from '../src/pages/RagPage'
-import { useRagForm, MAX_TOTAL_SIZE_BYTES, MAX_FILE_COUNT } from '../src/hooks/useRagForm'
+import { useRagForm, MAX_TOTAL_SIZE_BYTES } from '../src/hooks/useRagForm'
 
 vi.mock('../src/services/ragService', () => ({
   ragService: { upload: vi.fn() },

@@ -3,6 +3,7 @@ import ReactGA from 'react-ga4'
 export type EventName =
   | 'chat_message_sent'
   | 'chat_retry_clicked'
+  | 'chat_suggestion_clicked'
   | 'rag_form_submitted'
   | 'rag_files_selected'
 

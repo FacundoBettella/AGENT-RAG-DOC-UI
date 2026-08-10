@@ -2,9 +2,14 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi } from 'vitest'
 import { MemoryRouter, useLocation } from 'react-router-dom'
-import { renderToStaticMarkup } from 'react-dom/server'
-import { ServerStyleSheet } from 'styled-components'
 import AppShell from '../src/components/AppShell/AppShell'
+
+// NOTA: el subtítulo inline, el separador "—" y el botón de engranaje que esta
+// suite testeaba originalmente fueron retirados por design-system-shell
+// (decisión 17: el theme toggle se muda al pie del sidebar, sin menú de
+// engranaje). Lo que sigue vigente de header-polish es el enlace de marca
+// ("Mercurial" + caduceo, con aria-label "Ir al chat") que ahora vive en el
+// sidebar en lugar del header viejo.
 
 function LocationDisplay() {
   const location = useLocation()
@@ -34,12 +39,10 @@ function renderShell(initialPath = '/') {
 }
 
 describe('Header Polish', () => {
-  // @s1 — título y subtítulo inline en una sola línea
-  it('muestra "Mercurial", el separador "—" y "Consultas de RR.HH." en el header', () => {
+  // @s1 — el enlace de marca muestra "Mercurial"
+  it('muestra "Mercurial" en el enlace de marca', () => {
     renderShell()
     expect(screen.getByText('Mercurial')).toBeInTheDocument()
-    expect(screen.getByText(/Consultas de RR\.HH\./)).toBeInTheDocument()
-    expect(screen.getByText(/—/)).toBeInTheDocument()
   })
 
   // @s2 — el título es un enlace a "/"
@@ -52,14 +55,14 @@ describe('Header Polish', () => {
   })
 
   // @s3 — aria-label accesible
-  it('el enlace del header tiene aria-label "Ir al chat"', () => {
+  it('el enlace de marca tiene aria-label "Ir al chat"', () => {
     renderShell()
     const link = screen.getByRole('link', { name: /ir al chat/i })
     expect(link).toHaveAttribute('aria-label', 'Ir al chat')
   })
 
   // @s4 — navegación desde "/rag"
-  it('desde "/rag" hacer clic en el enlace del header cambia la ruta activa a "/"', async () => {
+  it('desde "/rag" hacer clic en el enlace de marca cambia la ruta activa a "/"', async () => {
     const { getByTestId } = render(
       <MemoryRouter initialEntries={['/rag']}>
         <AppShell>
@@ -74,7 +77,7 @@ describe('Header Polish', () => {
   })
 
   // @s5 — navegación desde "/faq"
-  it('desde "/faq" hacer clic en el enlace del header cambia la ruta activa a "/"', async () => {
+  it('desde "/faq" hacer clic en el enlace de marca cambia la ruta activa a "/"', async () => {
     const { getByTestId } = render(
       <MemoryRouter initialEntries={['/faq']}>
         <AppShell>
@@ -89,28 +92,18 @@ describe('Header Polish', () => {
   })
 
   // @s6 — clic en "/" no produce error
-  it('desde "/" el enlace del header sigue apuntando a "/"', () => {
+  it('desde "/" el enlace de marca sigue apuntando a "/"', () => {
     renderShell('/')
     const link = screen.getByRole('link', { name: /ir al chat/i })
     expect(link).toHaveAttribute('href', '/')
     expect(screen.queryByRole('alert')).toBeNull()
   })
 
-  // @s7 — sin text-decoration
-  it('el enlace del header tiene text-decoration: none en su estilo', () => {
-    const sheet = new ServerStyleSheet()
-    renderToStaticMarkup(
-      sheet.collectStyles(
-        <MemoryRouter>
-          <AppShell>
-            <div />
-          </AppShell>
-        </MemoryRouter>
-      )
-    )
-    const css = sheet.getStyleTags()
-    sheet.seal()
-    expect(css).toMatch(/text-decoration\s*:\s*none/)
+  // @s7 — sin subrayado (adaptado a Tailwind: clase utilitaria no-underline)
+  it('el enlace de marca tiene la clase utilitaria "no-underline"', () => {
+    renderShell()
+    const link = screen.getByRole('link', { name: /ir al chat/i })
+    expect(link.className).toContain('no-underline')
   })
 
   // @s8 — el caduceo forma parte del enlace
@@ -118,29 +111,5 @@ describe('Header Polish', () => {
     renderShell()
     const link = screen.getByRole('link', { name: /ir al chat/i })
     expect(link).toHaveTextContent('⚕')
-  })
-
-  // @s9 — GearButton fuera del enlace
-  it('el botón de configuración ⚙ existe y NO está dentro del enlace', () => {
-    renderShell()
-    const gearBtn = screen.getByRole('button', { name: /configuración/i })
-    expect(gearBtn).toBeInTheDocument()
-    const link = screen.getByRole('link', { name: /ir al chat/i })
-    expect(link).not.toContainElement(gearBtn)
-  })
-
-  // @s10 — viewport 320px
-  it('en viewport de 320px el enlace del header sigue presente y no hay desbordamiento', () => {
-    Object.defineProperty(window, 'innerWidth', {
-      value: 320,
-      writable: true,
-      configurable: true,
-    })
-    renderShell()
-    const link = screen.getByRole('link', { name: /ir al chat/i })
-    expect(link).toBeInTheDocument()
-    expect(link).toBeVisible()
-    const header = document.querySelector('header')
-    expect(header?.scrollWidth).toBeLessThanOrEqual(320)
   })
 })

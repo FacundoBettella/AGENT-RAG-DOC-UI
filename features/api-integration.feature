@@ -14,11 +14,16 @@ Feature: Integración con endpoints reales
     Then axios realiza un POST a "{VITE_API_BASE_URL}/api/query"
     And el body enviado contiene exactamente { "question": "¿Cuántos días de vacaciones tengo?" }
 
+  # Nota: el parseo fino del payload (campos answer/chunks, chunks_related
+  # ausente, system_answer inválido → Error) se especifica en
+  # features/hr-chat-redesign.feature @s1-@s3. Este escenario solo blinda
+  # que la integración deje de exponer el contrato viejo (string plano).
   @s2
-  Scenario: hrService.query retorna el texto del campo result en la respuesta exitosa
-    Given que el backend responde HTTP 200 con { "result": "Tenés 21 días de vacaciones." }
+  Scenario: hrService.query resuelve con un objeto { answer, chunks }, no con un string plano
+    Given que el backend responde HTTP 200 con { "query_result": { "system_answer": "Tenés 21 días de vacaciones.", "chunks_related": [] } }
     When se llama a hrService.query con cualquier pregunta
-    Then la promesa resuelve con el string "Tenés 21 días de vacaciones."
+    Then la promesa resuelve con un objeto que tiene la propiedad answer igual a "Tenés 21 días de vacaciones."
+    And la promesa no resuelve con un string plano
 
   @s3
   Scenario: hrService.query lanza Error con el mensaje del backend ante respuesta 4xx

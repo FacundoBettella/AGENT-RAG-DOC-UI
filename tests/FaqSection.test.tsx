@@ -1,11 +1,17 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { MemoryRouter, Routes, Route, useLocation } from 'react-router-dom'
-import { renderToStaticMarkup } from 'react-dom/server'
-import { ServerStyleSheet } from 'styled-components'
 import AppShell from '../src/components/AppShell/AppShell'
 import FaqPage from '../src/pages/FaqPage'
+
+// NOTA: design-system-shell (decisión 11) elimina el Footer global — el
+// punto único de navegación a /faq pasa a ser el botón "Ayuda" del header
+// nuevo (cubierto por features/design-system-shell.feature @s4). Los
+// escenarios que dependían del footer (@s1, @s2, @s3, @s6-footer, @s15,
+// @s16, @s17) quedan retirados junto con el componente. El contenido propio
+// de FaqPage (preguntas, respuestas, enlace "← Volver al chat") no se tocó
+// en esta feature y sigue vigente.
 
 vi.mock('react-ga4', () => ({
   default: { initialize: vi.fn(), event: vi.fn() },
@@ -39,66 +45,16 @@ function renderAppAtRoute(path: string) {
 }
 
 describe('FaqSection', () => {
-  // @s1: footer visible en "/"
-  it('@s1 muestra un elemento footer con enlace "Preguntas frecuentes" a "/faq" en la ruta "/"', () => {
-    renderAppAtRoute('/')
-    const footer = screen.getByRole('contentinfo')
-    expect(footer).toBeInTheDocument()
-    const link = screen.getByRole('link', { name: /preguntas frecuentes/i })
-    expect(link).toBeInTheDocument()
-    expect(link).toHaveAttribute('href', '/faq')
-  })
-
-  // @s2: footer visible en "/rag"
-  it('@s2 muestra el footer con enlace "Preguntas frecuentes" a "/faq" en la ruta "/rag"', () => {
-    renderAppAtRoute('/rag')
-    const footer = screen.getByRole('contentinfo')
-    expect(footer).toBeInTheDocument()
-    const link = screen.getByRole('link', { name: /preguntas frecuentes/i })
-    expect(link).toHaveAttribute('href', '/faq')
-  })
-
-  // @s3: footer visible en "/faq"
-  it('@s3 muestra el footer con enlace "Preguntas frecuentes" en la ruta "/faq" sin error circular', () => {
-    renderAppAtRoute('/faq')
-    const footer = screen.getByRole('contentinfo')
-    expect(footer).toBeInTheDocument()
-    const links = screen.getAllByRole('link', { name: /preguntas frecuentes/i })
-    expect(links.length).toBeGreaterThanOrEqual(1)
-    expect(links[0]).toHaveAttribute('href', '/faq')
-  })
-
-  // @s4: navegacion a /faq sin recarga
-  it('@s4 hacer clic en "Preguntas frecuentes" cambia la URL a "/faq" sin recarga', async () => {
-    render(
-      <MemoryRouter initialEntries={['/']}>
-        <AppShell>
-          <Routes>
-            <Route path="/" element={<div>Chat</div>} />
-            <Route path="/faq" element={<FaqPage />} />
-          </Routes>
-        </AppShell>
-        <LocationDisplay />
-      </MemoryRouter>
-    )
-    const link = screen.getByRole('link', { name: /preguntas frecuentes/i })
-    await userEvent.click(link)
-    expect(screen.getByTestId('location')).toHaveTextContent('/faq')
-  })
-
   // @s5: ruta /faq renderiza FaqPage con h1
   it('@s5 la ruta "/faq" muestra un h1 con el texto "Preguntas frecuentes"', () => {
     renderAppAtRoute('/faq')
     expect(screen.getByRole('heading', { level: 1, name: /preguntas frecuentes/i })).toBeInTheDocument()
   })
 
-  // @s6: /faq usa el mismo header y footer
-  it('@s6 la ruta "/faq" muestra el header con "Mercurial" y el footer con el enlace', () => {
+  // @s6 (adaptado): la ruta "/faq" sigue mostrando el shell global (sidebar con "Mercurial")
+  it('@s6 la ruta "/faq" muestra el sidebar con "Mercurial"', () => {
     renderAppAtRoute('/faq')
     expect(screen.getByText('Mercurial')).toBeInTheDocument()
-    expect(screen.getByRole('contentinfo')).toBeInTheDocument()
-    const link = screen.getAllByRole('link', { name: /preguntas frecuentes/i })
-    expect(link.length).toBeGreaterThanOrEqual(1)
   })
 
   // @s7: enlace "← Volver al chat" visible en /faq
@@ -174,49 +130,9 @@ describe('FaqSection', () => {
 
   // @s14: no se llama a fetch
   it('@s14 la página /faq no realiza ninguna llamada de red', () => {
-    const fetchSpy = vi.spyOn(global, 'fetch')
+    const fetchSpy = vi.spyOn(globalThis, 'fetch')
     renderAppAtRoute('/faq')
     expect(fetchSpy).not.toHaveBeenCalled()
     fetchSpy.mockRestore()
-  })
-
-  // @s15: estilos del footer
-  it('@s15 el footer tiene los estilos visuales definidos en el spec', () => {
-    const sheet = new ServerStyleSheet()
-    renderToStaticMarkup(
-      sheet.collectStyles(
-        <MemoryRouter initialEntries={['/']}>
-          <AppShell>
-            <div />
-          </AppShell>
-        </MemoryRouter>
-      )
-    )
-    const css = sheet.getStyleTags()
-    sheet.seal()
-    expect(css).toMatch(/background\s*:\s*var\(--color-surface\)/)
-    expect(css).toMatch(/border-top\s*:\s*1px solid var\(--color-border\)/)
-    expect(css).toMatch(/color\s*:\s*var\(--color-text-muted\)/)
-    expect(css).toMatch(/font-size\s*:\s*0\.75rem/)
-  })
-
-  // @s16: aria-current en el enlace del footer cuando se está en /faq
-  it('@s16 el enlace "Preguntas frecuentes" tiene aria-current cuando el usuario está en /faq', () => {
-    renderAppAtRoute('/faq')
-    const links = screen.getAllByRole('link', { name: /preguntas frecuentes/i })
-    // El enlace del footer debe tener aria-current
-    const footerLink = links.find(l => l.closest('footer'))
-    expect(footerLink).toBeDefined()
-    expect(footerLink).toHaveAttribute('aria-current')
-  })
-
-  // @s17: layout no rompe en viewport < 320px
-  it('@s17 en viewport de 300px el header, contenido FAQ y footer permanecen visibles', () => {
-    Object.defineProperty(window, 'innerWidth', { value: 300, writable: true, configurable: true })
-    renderAppAtRoute('/faq')
-    expect(screen.getByRole('banner')).toBeVisible()
-    expect(screen.getByRole('heading', { level: 1 })).toBeVisible()
-    const footer = screen.getByRole('contentinfo')
-    expect(footer).toBeVisible()
   })
 })

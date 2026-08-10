@@ -1,9 +1,17 @@
-import { render, screen, fireEvent, within } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import App from '../src/App'
-import AppShell from '../src/components/AppShell/AppShell'
+
+// NOTA: design-system-shell (decisión 17) retiró el menú de engranaje —
+// el theme toggle ya no vive detrás de un dropdown, sino directo en el pie
+// del sidebar. Los escenarios @s1, @s2 y @s4 de esta suite testeaban ese
+// menú (abrir/cerrar, enlace a /rag dentro del menú) y quedaron sin objeto:
+// /rag ahora es un item de navegación de primer nivel del sidebar (cubierto
+// por features/design-system-shell.feature @s1) y no hay menú que abrir o
+// cerrar. Los escenarios de persistencia/restauración de tema (@s5-@s9) y
+// de ruteo (@s10-@s12) siguen vigentes, adaptados a la nueva ubicación del
+// control.
 
 vi.mock('react-ga4', () => ({
   default: { initialize: vi.fn(), event: vi.fn() },
@@ -31,51 +39,10 @@ function renderApp(initialRoute = '/') {
   )
 }
 
-describe('VisualRedesign — @s1 Engranaje abre el menú desplegable', () => {
-  it('el menú desplegable es visible tras hacer clic en el ícono de engranaje', async () => {
-    const user = userEvent.setup()
+describe('VisualRedesign — @s3 El sidebar contiene un control de tema', () => {
+  it('el pie del sidebar contiene un control con rol switch', () => {
     renderApp()
-    const gear = screen.getByRole('button', { name: /configuración/i })
-    expect(screen.queryByRole('menu')).not.toBeInTheDocument()
-    await user.click(gear)
-    expect(screen.getByRole('menu')).toBeInTheDocument()
-  })
-})
-
-describe('VisualRedesign — @s2 Engranaje cierra el menú desplegable', () => {
-  it('el menú desplegable desaparece al hacer clic de nuevo en el engranaje', async () => {
-    const user = userEvent.setup()
-    renderApp()
-    const gear = screen.getByRole('button', { name: /configuración/i })
-    await user.click(gear)
-    expect(screen.getByRole('menu')).toBeInTheDocument()
-    await user.click(gear)
-    expect(screen.queryByRole('menu')).not.toBeInTheDocument()
-  })
-})
-
-describe('VisualRedesign — @s3 El menú contiene un control de tema', () => {
-  it('el menú contiene un control con rol switch o botón de tema', async () => {
-    const user = userEvent.setup()
-    renderApp()
-    const gear = screen.getByRole('button', { name: /configuración/i })
-    await user.click(gear)
-    const menu = screen.getByRole('menu')
-    const switchEl = within(menu).queryByRole('switch')
-    const themeBtn = within(menu).queryByRole('button', { name: /tema/i })
-    expect(switchEl ?? themeBtn).toBeTruthy()
-  })
-})
-
-describe('VisualRedesign — @s4 El menú contiene enlace a /rag', () => {
-  it('el menú contiene un enlace con destino "/rag"', async () => {
-    const user = userEvent.setup()
-    renderApp()
-    const gear = screen.getByRole('button', { name: /configuración/i })
-    await user.click(gear)
-    const link = screen.getByRole('link', { name: /rag/i })
-    expect(link).toBeInTheDocument()
-    expect(link).toHaveAttribute('href', '/rag')
+    expect(screen.getByRole('switch')).toBeInTheDocument()
   })
 })
 
@@ -89,11 +56,8 @@ describe('VisualRedesign — @s5 Activar tema light aplica data-theme="light"', 
     document.documentElement.removeAttribute('data-theme')
   })
 
-  it('aplica data-theme="light" al activar el tema claro', async () => {
-    const user = userEvent.setup()
+  it('aplica data-theme="light" al activar el tema claro', () => {
     renderApp()
-    const gear = screen.getByRole('button', { name: /configuración/i })
-    await user.click(gear)
     const themeSwitch = screen.getByRole('switch')
     // Current theme is dark — clicking switch should activate light
     fireEvent.click(themeSwitch)
@@ -111,11 +75,8 @@ describe('VisualRedesign — @s6 Activar tema dark aplica data-theme="dark"', ()
     document.documentElement.removeAttribute('data-theme')
   })
 
-  it('aplica data-theme="dark" al activar el tema oscuro', async () => {
-    const user = userEvent.setup()
+  it('aplica data-theme="dark" al activar el tema oscuro', () => {
     renderApp()
-    const gear = screen.getByRole('button', { name: /configuración/i })
-    await user.click(gear)
     const themeSwitch = screen.getByRole('switch')
     // Current theme is light — clicking switch should activate dark
     fireEvent.click(themeSwitch)
@@ -133,11 +94,8 @@ describe('VisualRedesign — @s7 Cambiar tema persiste en localStorage', () => {
     document.documentElement.removeAttribute('data-theme')
   })
 
-  it('localStorage contiene la clave de tema con valor "light" tras activar tema claro', async () => {
-    const user = userEvent.setup()
+  it('localStorage contiene la clave de tema con valor "light" tras activar tema claro', () => {
     renderApp()
-    const gear = screen.getByRole('button', { name: /configuración/i })
-    await user.click(gear)
     const themeSwitch = screen.getByRole('switch')
     // Default is dark, click to go light
     fireEvent.click(themeSwitch)
@@ -176,13 +134,13 @@ describe('VisualRedesign — @s9 Tema por defecto es "dark"', () => {
   })
 })
 
-describe('VisualRedesign — @s10 Caduceo visible en el header', () => {
-  it('existe un elemento con aria-label "Caduceo de Hermes" en el header', () => {
+describe('VisualRedesign — @s10 Caduceo visible en el sidebar', () => {
+  it('existe un elemento con aria-label "Caduceo de Hermes" dentro del sidebar', () => {
     renderApp()
     const caduceo = screen.getByLabelText('Caduceo de Hermes')
     expect(caduceo).toBeInTheDocument()
-    const header = screen.getByRole('banner')
-    expect(header).toContainElement(caduceo)
+    const sidebar = screen.getByRole('navigation', { name: /navegación principal/i })
+    expect(sidebar).toContainElement(caduceo)
   })
 })
 

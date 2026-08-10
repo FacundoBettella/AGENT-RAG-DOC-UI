@@ -130,6 +130,13 @@ visualmente pero no se envía como contexto a la API.
 
 ### Contrato
 
+> **SUPERADO por `specs/hr-chat-redesign/spec.md` (feature 11, done).** El contrato
+> de abajo (`Promise<string>`) describía un shape que nunca coincidió con el backend
+> real — se dejaba `undefined` como respuesta. El contrato vigente es
+> `hrService.query(question: string): Promise<{ answer: string, chunks: HrChunk[] }>`,
+> leído de `query_result.system_answer`/`query_result.chunks_related`. Se conserva el
+> texto original solo como registro histórico de la decisión errónea.
+
 - Entrada (servicio): `hrService.query(question: string): Promise<string>`
   — devuelve el texto de respuesta o lanza `Error`.
 - Salida visible: lista de exchanges `{ question: string, answer: string }`
@@ -187,6 +194,13 @@ Esta feature cubre **únicamente** dos reemplazos de stub:
 ---
 
 ### Contrato `POST /api/query`
+
+> **SUPERADO por `specs/hr-chat-redesign/spec.md` (feature 11, done).** La respuesta
+> real del backend es `{ "query_result": { "system_answer": "...", "chunks_related": [...],
+> "user_question": "...", "intent": "...", "reasoning": "..." } }` — no `{ "result": "..." }`
+> como se documentaba abajo. Ese campo `result` nunca existió en el backend real; fue
+> una asunción incorrecta de esta spec original que el fix de la feature 11 corrigió.
+> Se conserva el texto original solo como registro histórico.
 
 #### Request
 

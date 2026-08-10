@@ -21,7 +21,9 @@ afterEach(() => {
 describe('hrService — @s1: envía POST /api/query con el campo question', () => {
   it('llama a axios.post con la URL correcta y el body { question }', async () => {
     vi.stubEnv('VITE_API_BASE_URL', 'http://api.mercurial.local')
-    mockedAxiosPost.mockResolvedValue({ data: { result: 'ok' } })
+    mockedAxiosPost.mockResolvedValue({
+      data: { query_result: { system_answer: 'ok', chunks_related: [] } },
+    })
 
     const { hrService } = await import('../src/services/hrService')
     await hrService.query('¿Cuántos días de vacaciones tengo?')
@@ -37,15 +39,82 @@ describe('hrService — @s1: envía POST /api/query con el campo question', () =
 // hrService — @s2
 // ──────────────────────────────────────────────
 
-describe('hrService — @s2: retorna el texto del campo result en la respuesta exitosa', () => {
-  it('resuelve con el string del campo result', async () => {
+describe('hrService — @s2: resuelve con un objeto { answer, chunks }, no con un string plano', () => {
+  it('resuelve con answer leído de query_result.system_answer', async () => {
     vi.stubEnv('VITE_API_BASE_URL', 'http://api.mercurial.local')
-    mockedAxiosPost.mockResolvedValue({ data: { result: 'Tenés 21 días de vacaciones.' } })
+    mockedAxiosPost.mockResolvedValue({
+      data: {
+        query_result: { system_answer: 'Tenés 21 días de vacaciones.', chunks_related: [] },
+      },
+    })
 
     const { hrService } = await import('../src/services/hrService')
     const result = await hrService.query('cualquier pregunta')
 
-    expect(result).toBe('Tenés 21 días de vacaciones.')
+    expect(result).toEqual({ answer: 'Tenés 21 días de vacaciones.', chunks: [] })
+    expect(typeof result).not.toBe('string')
+  })
+
+  it('el array chunks se lee de query_result.chunks_related', async () => {
+    vi.stubEnv('VITE_API_BASE_URL', 'http://api.mercurial.local')
+    mockedAxiosPost.mockResolvedValue({
+      data: {
+        query_result: {
+          system_answer: 'Tenés 21 días de vacaciones.',
+          chunks_related: [{ content: 'Política de licencias...', source: 'manual-rrhh.pdf', similarity: 0.87 }],
+        },
+      },
+    })
+
+    const { hrService } = await import('../src/services/hrService')
+    const result = await hrService.query('cualquier pregunta')
+
+    expect(result.chunks).toEqual([
+      { content: 'Política de licencias...', source: 'manual-rrhh.pdf', similarity: 0.87 },
+    ])
+  })
+
+  it('chunks es un array vacío si el backend no envía chunks_related', async () => {
+    vi.stubEnv('VITE_API_BASE_URL', 'http://api.mercurial.local')
+    mockedAxiosPost.mockResolvedValue({
+      data: { query_result: { system_answer: 'Respuesta sin fuentes.' } },
+    })
+
+    const { hrService } = await import('../src/services/hrService')
+    const result = await hrService.query('cualquier pregunta')
+
+    expect(result.chunks).toEqual([])
+  })
+
+  it('lanza Error si system_answer está ausente', async () => {
+    vi.stubEnv('VITE_API_BASE_URL', 'http://api.mercurial.local')
+    mockedAxiosPost.mockResolvedValue({
+      data: { query_result: { chunks_related: [] } },
+    })
+
+    const { hrService } = await import('../src/services/hrService')
+
+    await expect(hrService.query('cualquier pregunta')).rejects.toThrow(Error)
+  })
+
+  it('lanza Error si system_answer es un string vacío', async () => {
+    vi.stubEnv('VITE_API_BASE_URL', 'http://api.mercurial.local')
+    mockedAxiosPost.mockResolvedValue({
+      data: { query_result: { system_answer: '', chunks_related: [] } },
+    })
+
+    const { hrService } = await import('../src/services/hrService')
+
+    await expect(hrService.query('cualquier pregunta')).rejects.toThrow(Error)
+  })
+
+  it('lanza Error si el payload no trae query_result', async () => {
+    vi.stubEnv('VITE_API_BASE_URL', 'http://api.mercurial.local')
+    mockedAxiosPost.mockResolvedValue({ data: {} })
+
+    const { hrService } = await import('../src/services/hrService')
+
+    await expect(hrService.query('cualquier pregunta')).rejects.toThrow(Error)
   })
 })
 
@@ -116,7 +185,9 @@ describe('hrService — @s5: relanza como Error tipado, no como AxiosError expue
 describe('hrService — @s6: lee VITE_API_BASE_URL para construir la URL base', () => {
   it('usa VITE_API_BASE_URL para construir la URL del request', async () => {
     vi.stubEnv('VITE_API_BASE_URL', 'http://api.mercurial.local')
-    mockedAxiosPost.mockResolvedValue({ data: { result: 'ok' } })
+    mockedAxiosPost.mockResolvedValue({
+      data: { query_result: { system_answer: 'ok', chunks_related: [] } },
+    })
 
     const { hrService } = await import('../src/services/hrService')
     await hrService.query('pregunta')

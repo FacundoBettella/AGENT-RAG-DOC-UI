@@ -1,20 +1,11 @@
-import { useEffect, useRef } from 'react'
+import { useCallback, useMemo, useRef } from 'react'
 import { useHrChat } from '../../hooks/useHrChat'
-import {
-  BubbleWrapper,
-  ChatContainer,
-  ErrorBubble,
-  InputArea,
-  InputWrapper,
-  MessageBubble,
-  MessagesArea,
-  RetryButton,
-  SendButton,
-  StyledTextarea,
-  ThinkingDot,
-  ThinkingWrapper,
-  WelcomeMessage,
-} from './HrChat.styles'
+import { analyticsService } from '../../services/analyticsService'
+import { HrChatContext } from './context'
+import type { HrChatContextValue } from './context'
+import type { Suggestion } from './HrChat.types'
+import ChatColumn from './components/ChatColumn'
+import ContextPanel from './components/ContextPanel'
 
 function HrChat() {
   const {
@@ -30,111 +21,69 @@ function HrChat() {
 
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
+  const pendingAskedAtRef = useRef<number | null>(null)
+  const greetingAskedAtRef = useRef<number>(Date.now())
 
-  // Auto-focus on mount
-  useEffect(() => {
-    textareaRef.current?.focus()
-  }, [])
-
-  // Scroll to bottom when exchanges or loading state changes
-  useEffect(() => {
-    if (bottomRef.current && typeof bottomRef.current.scrollIntoView === 'function') {
-      bottomRef.current.scrollIntoView({ behavior: 'smooth' })
-    }
-  }, [exchanges, isLoading])
-
-  // Re-focus after loading ends
-  useEffect(() => {
-    if (!isLoading) {
-      textareaRef.current?.focus()
-    }
-  }, [isLoading])
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      if (!isLoading) {
-        submitQuestion(inputValue)
+  const handleSubmit = useCallback(
+    (question: string) => {
+      if (question.trim() !== '') {
+        pendingAskedAtRef.current = Date.now()
       }
-    }
-  }
+      submitQuestion(question)
+    },
+    [submitQuestion]
+  )
 
-  // isEmpty: no exchanges, not loading, no error, no pending question
-  const isEmpty = exchanges.length === 0 && !isLoading && !error && pendingQuestion === null
+  const handleSuggestionClick = useCallback(
+    (suggestion: Suggestion) => {
+      setInputValue(suggestion.text)
+      textareaRef.current?.focus()
+      analyticsService.trackEvent('chat_suggestion_clicked', { suggestion: suggestion.text })
+    },
+    [setInputValue]
+  )
+
+  const lastChunks = useMemo(() => exchanges[exchanges.length - 1]?.chunks ?? [], [exchanges])
+
+  const value = useMemo<HrChatContextValue>(
+    () => ({
+      exchanges,
+      isLoading,
+      error,
+      pendingQuestion,
+      inputValue,
+      setInputValue,
+      submitQuestion: handleSubmit,
+      handleRetry,
+      handleSuggestionClick,
+      textareaRef,
+      bottomRef,
+      pendingAskedAtRef,
+      greetingAskedAt: greetingAskedAtRef.current,
+      hasExchanges: exchanges.length > 0,
+      lastChunks,
+    }),
+    [
+      exchanges,
+      isLoading,
+      error,
+      pendingQuestion,
+      inputValue,
+      setInputValue,
+      handleSubmit,
+      handleRetry,
+      handleSuggestionClick,
+      lastChunks,
+    ]
+  )
 
   return (
-    <div data-testid="hr-chat">
-      <ChatContainer>
-        <MessagesArea>
-          {isEmpty && (
-            <WelcomeMessage>¿En qué puedo ayudarte hoy?</WelcomeMessage>
-          )}
-
-          {exchanges.map((ex, idx) => (
-            <div key={idx}>
-              <BubbleWrapper $align="right">
-                <MessageBubble $variant="user">{ex.question}</MessageBubble>
-              </BubbleWrapper>
-              <BubbleWrapper $align="left">
-                <MessageBubble $variant="assistant">{ex.answer}</MessageBubble>
-              </BubbleWrapper>
-            </div>
-          ))}
-
-          {pendingQuestion !== null && (
-            <BubbleWrapper $align="right">
-              <MessageBubble $variant="user">{pendingQuestion}</MessageBubble>
-            </BubbleWrapper>
-          )}
-
-          {isLoading && (
-            <BubbleWrapper $align="left">
-              <ThinkingWrapper>
-                <span>Mercurial está procesando tu consulta</span>
-                <ThinkingDot />
-                <ThinkingDot />
-                <ThinkingDot />
-              </ThinkingWrapper>
-            </BubbleWrapper>
-          )}
-
-          {error !== null && (
-            <BubbleWrapper $align="left">
-              <ErrorBubble>
-                <div>{error}</div>
-                <RetryButton type="button" onClick={handleRetry}>
-                  Reintentar
-                </RetryButton>
-              </ErrorBubble>
-            </BubbleWrapper>
-          )}
-
-          <div ref={bottomRef} />
-        </MessagesArea>
-
-        <InputArea>
-          <InputWrapper>
-            <StyledTextarea
-              ref={textareaRef}
-              aria-label="Escribe tu pregunta"
-              value={inputValue}
-              disabled={isLoading}
-              rows={1}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyDown={handleKeyDown}
-            />
-            <SendButton
-              type="button"
-              aria-label="Enviar"
-              disabled={isLoading}
-              onClick={() => submitQuestion(inputValue)}
-            >
-              ↑
-            </SendButton>
-          </InputWrapper>
-        </InputArea>
-      </ChatContainer>
-    </div>
+    <HrChatContext.Provider value={value}>
+      <div data-testid="hr-chat" className="flex flex-1 overflow-hidden">
+        <ChatColumn />
+        <ContextPanel />
+      </div>
+    </HrChatContext.Provider>
   )
 }
 

@@ -1,0 +1,75 @@
+@import 'tailwindcss';
+
+/*
+ * Tokens Material Design 3 — paleta "Sylvan Logic" del mockup.
+ * Light es el valor por defecto en @theme; dark sobreescribe vía [data-theme='dark'].
+ * Ver specs/design-system-shell/spec.md para la tabla completa y su origen.
+ */
+@theme {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-serif: 'Source Serif 4', ui-serif, Georgia, serif;
+
+  --radius-sm: 0.25rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+
+  --color-primary: #173809;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #2d4f1e;
+  --color-on-primary-container: #98c083;
+
+  --color-secondary: #77574d;
+  --color-secondary-container: #fed3c7;
+  --color-on-secondary-container: #2c1512;
+
+  --color-tertiary: #511e3a;
+  --color-tertiary-container: #6c3451;
+
+  --color-error: #ba1a1a;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #410002;
+
+  --color-background: #f9faf2;
+  --color-surface: #f9faf2;
+  --color-surface-container-low: #f4f4ec;
+  --color-surface-container: #eeeee7;
+  --color-surface-container-high: #e8e9e1;
+  --color-surface-container-highest: #e2e3dc;
+
+  --color-on-surface: #1a1c18;
+  --color-on-surface-variant: #43493e;
+
+  --color-outline: #73796d;
+  --color-outline-variant: #c3c8bb;
+}
+
+[data-theme='dark'] {
+  --color-primary: #a3d18c;
+  --color-on-primary: #12360a;
+  --color-primary-container: #2d4f1e;
+  --color-on-primary-container: #bfeaa7;
+
+  --color-secondary: #e7bdb0;
+  --color-secondary-container: #5d3f37;
+  --color-on-secondary-container: #ffdbd1;
+
+  --color-tertiary: #e5b9d0;
+  --color-tertiary-container: #6c3451;
+
+  --color-error: #ffb4ab;
+  --color-error-container: #93000a;
+  --color-on-error-container: #ffdad6;
+
+  --color-background: #12140f;
+  --color-surface: #12140f;
+  --color-surface-container-low: #1a1c17;
+  --color-surface-container: #1e201b;
+  --color-surface-container-high: #282b25;
+  --color-surface-container-highest: #333630;
+
+  --color-on-surface: #e2e3dc;
+  --color-on-surface-variant: #c3c8bb;
+
+  --color-outline: #8d9387;
+  --color-outline-variant: #43493e;
+}
