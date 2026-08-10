@@ -60,11 +60,6 @@ describe('design-system-shell — @s1 El sidebar ofrece los cuatro destinos en e
 })
 
 describe('design-system-shell — @s2 Los destinos de las features futuras muestran "Próximamente"', () => {
-  it('la ruta "/contracts" muestra el texto "Próximamente"', () => {
-    renderApp('/contracts')
-    expect(screen.getByText('Próximamente')).toBeInTheDocument()
-  })
-
   it('la ruta "/settings" muestra el texto "Próximamente"', () => {
     renderApp('/settings')
     expect(screen.getByText('Próximamente')).toBeInTheDocument()

@@ -3,7 +3,7 @@ import { extractBackendError } from './httpError'
 
 export const ragService = {
   async upload(files: FileList | File[]): Promise<void> {
-    const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
+    const BASE_URL = import.meta.env.VITE_RAG_API_BASE_URL ?? 'http://localhost:8000'
     const fileArray = Array.from(files)
     if (fileArray.length === 0) {
       throw new Error('No se seleccionaron archivos para cargar.')

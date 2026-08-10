@@ -1,5 +1,8 @@
 import { useState, useCallback } from 'react'
 import { ragService } from '../services/ragService'
+import { formatFileSize } from '../utils/formatFileSize'
+
+export { formatFileSize }
 
 export const MAX_FILE_SIZE_BYTES = 2 * 1024 * 1024
 export const MAX_TOTAL_SIZE_BYTES = 8 * 1024 * 1024
@@ -21,15 +24,6 @@ export type UseRagFormReturn = {
 
 function isTxtFile(file: File): boolean {
   return file.name.toLowerCase().endsWith('.txt')
-}
-
-export function formatFileSize(bytes: number): string {
-  if (bytes < 1024 * 1024) {
-    const kb = bytes / 1024
-    const rounded = Math.round(kb * 10) / 10
-    return `${Number.isInteger(rounded) ? rounded.toFixed(0) : rounded.toFixed(1)} KB`
-  }
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
 export function useRagForm(): UseRagFormReturn {

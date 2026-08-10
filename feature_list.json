@@ -124,10 +124,12 @@
       "id": 12,
       "name": "contract-analysis",
       "title": "Analizador de contratos (DOC AGENT API)",
-      "description": "Pantalla nueva con 2 file inputs de imagen (contrato original y enmienda, ambos requeridos) que llama a POST /analysis contra DOC AGENT API y muestra el resultado (sections_changed, topics_touched, summary_of_the_change). Requiere base URL propia (VITE_DOC_AGENT_API_BASE_URL), distinta de la del RAG AGENT API.",
+      "description": "Pantalla nueva con 2 file inputs de imagen (contrato original y enmienda, ambos requeridos, .png/.jpg/.jpeg, máx 10MB c/u) que llama a POST /analysis contra DOC AGENT API y muestra el resultado (sections_changed, topics_touched, summary_of_the_change). Requiere base URL propia (VITE_DOC_AGENT_API_BASE_URL=http://localhost:8000, ya en .env.local). Incluye fix: .env.local tenía VITE_API_BASE_URL apuntando al puerto del DOC AGENT API en vez del RAG AGENT API (8080); corregido. CORS agregado en DOC AGENT API/src/api/app.py (repo externo).",
       "owner": "Facundo Bettella",
       "sdd": true,
-      "status": "pending",
+      "status": "done",
+      "mode": "test-after",
+      "measure": false,
       "depends_on": [10]
     },
     {

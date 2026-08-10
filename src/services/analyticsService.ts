@@ -6,6 +6,7 @@ export type EventName =
   | 'chat_suggestion_clicked'
   | 'rag_form_submitted'
   | 'rag_files_selected'
+  | 'contract_analysis_submitted'
 
 const gaId = import.meta.env.VITE_GA_ID as string | undefined
 if (gaId) {

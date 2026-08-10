@@ -20,7 +20,7 @@ interface QueryResultPayload {
 
 export const hrService = {
   async query(question: string): Promise<HrAnswer> {
-    const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
+    const BASE_URL = import.meta.env.VITE_RAG_API_BASE_URL ?? 'http://localhost:8000'
     try {
       const response = await axios.post(`${BASE_URL}${API_ROUTES.QUERY}`, { question })
       const queryResult = (response.data?.query_result ?? {}) as QueryResultPayload

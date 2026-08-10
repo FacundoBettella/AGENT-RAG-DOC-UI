@@ -4,9 +4,10 @@
 > Mientras trabajas, **mantenlo actualizado en tiempo real**, no al final.
 
 - **Feature en curso:** ninguna
-- **Estado:** features 10 y 11 DONE. Pendientes desbloqueadas: 12 (contract-analysis),
-  13 (prompts-config). Fix de entorno en `profiles/react/test.sh` (no `profiles/active/`,
-  que init.sh regenera cada corrida) — ver nota más abajo.
+- **Estado:** features 10, 11 y 12 DONE (10+11 commiteadas: 3bccd0a chore harness,
+  7f6123e feat 10+11; 12 sin commitear todavía). Pendiente desbloqueada: 13
+  (prompts-config). Fix de entorno en `profiles/react/test.sh` (no `profiles/active/`,
+  que init.sh regenera cada corrida).
 - **Backlog:** 14 — rag-domain-metadata (bug real: ragService.ts no manda `domain`, que
   RAG AGENT API exige en POST /api/ingest; un dominio por carga). También candidato para
   arreglar que /api/ingest indexa con source="api" fijo (pierde nombre de archivo real,
@@ -36,7 +37,16 @@
   desactualizado — ya corregido con notas de "SUPERADO"). features/api-integration.feature
   @s2 actualizado en consecuencia.
 
+- **Feature 12 — contract-analysis:** pantalla real en `/contracts` (reemplaza el
+  placeholder de la feature 10). `docAgentService.analyze()` contra DOC AGENT API
+  (`POST /analysis`, 2 imágenes requeridas .png/.jpg/.jpeg máx 10MB, traduce
+  snake_case→camelCase). `extractBackendError` extendido para el shape `{detail}` de
+  FastAPI. Rename `VITE_API_BASE_URL`→`VITE_RAG_API_BASE_URL`. Fix de CORS en
+  `DOC AGENT API/src/api/app.py` (repo externo) y de `.env.local` (apuntaba al puerto
+  equivocado — RAG en 8080, DOC en 8000). 227 tests verdes. Reviewer APROBADO (hallazgos
+  menores no bloqueantes: function-declaration/key=index preexistentes, useMemo faltante
+  en context value, constantes de validación ubicadas en el hook en vez de constants.ts).
+
 ## Próximo paso
 
-Elegir entre: 12 (contract-analysis), 13 (prompts-config) — ambas desbloqueadas —
-o retomar 14 (rag-domain-metadata) del backlog.
+13 (prompts-config) es la única pendiente desbloqueada. Feature 12 sin commitear.

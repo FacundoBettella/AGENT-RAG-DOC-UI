@@ -286,6 +286,19 @@ el ciclo):
 
 ---
 
+## Variables De Entorno
+
+La UI consume dos backends independientes, cada uno con su propia base URL:
+
+| Variable | Backend | Fallback en código |
+|---|---|---|
+| `VITE_RAG_API_BASE_URL` | RAG AGENT API (`/api/query`, `/api/ingest`) | `http://localhost:8000` |
+| `VITE_DOC_AGENT_API_BASE_URL` | DOC AGENT API (`/analysis`) | `http://localhost:8000` |
+
+Se configuran en `.env.local` (gitignoreado). Verificá el puerto real de cada backend en tu
+entorno antes de asumir el fallback — los `docker-compose.yml` de cada repo pueden publicar
+puertos distintos.
+
 ## Quickstart
 
 ```bash
