@@ -46,6 +46,27 @@ function selectFiles(input: HTMLElement, files: File[]) {
   fireEvent.change(input)
 }
 
+// Selecciona el dominio "RR.HH." por default: necesario desde la feature 14
+// (rag-domain-metadata) para que canSubmit habilite el botón "Subir archivos".
+function selectDomain(label: RegExp = /rr\.hh\./i) {
+  fireEvent.click(screen.getByRole('radio', { name: label }))
+}
+
+function makeIngestResult(overrides: Partial<{
+  domain: 'hr' | 'tech' | 'finance'
+  documentsReceived: number
+  chunksIndexed: number
+  totalInStore: number
+}> = {}) {
+  return {
+    domain: 'hr' as const,
+    documentsReceived: 1,
+    chunksIndexed: 1,
+    totalInStore: 0,
+    ...overrides,
+  }
+}
+
 beforeEach(() => {
   vi.clearAllMocks()
 })
@@ -153,10 +174,11 @@ describe('RagFormV2 — @s3 Selección de archivos válidos por click', () => {
     expect(screen.getByText(/2 archivos/i)).toBeInTheDocument()
   })
 
-  it('el botón "Subir archivos" está habilitado con archivos válidos', () => {
+  it('el botón "Subir archivos" está habilitado con archivos válidos y dominio elegido', () => {
     render(<RagPage />)
     const input = screen.getByLabelText(/seleccionar archivos/i) as HTMLInputElement
     selectFiles(input, [makeTxtFile('doc.txt', 100)])
+    selectDomain()
     expect(
       screen.getByRole('button', { name: /subir archivos/i })
     ).not.toBeDisabled()
@@ -177,10 +199,11 @@ describe('RagFormV2 — @s4 Selección de archivos por drag & drop', () => {
     expect(screen.getByText('drop-b.txt')).toBeInTheDocument()
   })
 
-  it('el botón "Subir archivos" se habilita después del drop', () => {
+  it('el botón "Subir archivos" se habilita después del drop y de elegir dominio', () => {
     render(<RagPage />)
     const dropZone = screen.getByRole('region', { name: /zona de carga/i })
     dropFiles(dropZone, [makeTxtFile('doc.txt', 100)])
+    selectDomain()
     expect(
       screen.getByRole('button', { name: /subir archivos/i })
     ).not.toBeDisabled()
@@ -310,11 +333,12 @@ describe('RagFormV2 — @s8 Archivo de exactamente 2 MB es aceptado', () => {
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
 
-  it('el botón "Subir archivos" está habilitado', () => {
+  it('el botón "Subir archivos" está habilitado con dominio elegido', () => {
     render(<RagPage />)
     const input = screen.getByLabelText(/seleccionar archivos/i) as HTMLInputElement
     const exactFile = makeTxtFile('exacto.txt', TWO_MB)
     selectFiles(input, [exactFile])
+    selectDomain()
     expect(
       screen.getByRole('button', { name: /subir archivos/i })
     ).not.toBeDisabled()
@@ -436,7 +460,7 @@ describe('RagFormV2 — @s11 Eliminar archivo limpia el error de peso total', ()
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
 
-  it('el botón "Subir archivos" se habilita si hay al menos un archivo', async () => {
+  it('el botón "Subir archivos" se habilita si hay al menos un archivo y dominio elegido', async () => {
     const user = userEvent.setup()
     render(<RagPage />)
     const input = screen.getByLabelText(/seleccionar archivos/i) as HTMLInputElement
@@ -448,6 +472,7 @@ describe('RagFormV2 — @s11 Eliminar archivo limpia el error de peso total', ()
       makeTxtFile('d.txt', TWO_MB),
       makeTxtFile('extra.txt', 1024),
     ])
+    selectDomain()
 
     await user.click(screen.getByRole('button', { name: /eliminar a\.txt/i }))
 
@@ -596,28 +621,31 @@ describe('RagFormV2 — @s17 Envío exitoso', () => {
     render(<RagPage />)
     const input = screen.getByLabelText(/seleccionar archivos/i) as HTMLInputElement
     selectFiles(input, [makeTxtFile('doc.txt', 100)])
+    selectDomain()
     await user.click(screen.getByRole('button', { name: /subir archivos/i }))
     expect(screen.getByRole('status')).toBeInTheDocument()
   })
 
   it('al completarse muestra mensaje de éxito', async () => {
-    mockedUpload.mockResolvedValue(undefined)
+    mockedUpload.mockResolvedValue(makeIngestResult())
     const user = userEvent.setup()
     render(<RagPage />)
     const input = screen.getByLabelText(/seleccionar archivos/i) as HTMLInputElement
     selectFiles(input, [makeTxtFile('doc.txt', 100)])
+    selectDomain()
     await user.click(screen.getByRole('button', { name: /subir archivos/i }))
     await waitFor(() =>
-      expect(screen.getByText(/correctamente/i)).toBeInTheDocument()
+      expect(screen.getByText(/se indexaron/i)).toBeInTheDocument()
     )
   })
 
   it('la lista de archivos queda vacía después del éxito', async () => {
-    mockedUpload.mockResolvedValue(undefined)
+    mockedUpload.mockResolvedValue(makeIngestResult())
     const user = userEvent.setup()
     render(<RagPage />)
     const input = screen.getByLabelText(/seleccionar archivos/i) as HTMLInputElement
     selectFiles(input, [makeTxtFile('doc.txt', 100)])
+    selectDomain()
     await user.click(screen.getByRole('button', { name: /subir archivos/i }))
     await waitFor(() =>
       expect(screen.queryByText('doc.txt')).not.toBeInTheDocument()
@@ -625,11 +653,12 @@ describe('RagFormV2 — @s17 Envío exitoso', () => {
   })
 
   it('el botón "Subir archivos" vuelve a estar deshabilitado después del éxito', async () => {
-    mockedUpload.mockResolvedValue(undefined)
+    mockedUpload.mockResolvedValue(makeIngestResult())
     const user = userEvent.setup()
     render(<RagPage />)
     const input = screen.getByLabelText(/seleccionar archivos/i) as HTMLInputElement
     selectFiles(input, [makeTxtFile('doc.txt', 100)])
+    selectDomain()
     await user.click(screen.getByRole('button', { name: /subir archivos/i }))
     await waitFor(() =>
       expect(
@@ -649,6 +678,7 @@ describe('RagFormV2 — @s18 Error del backend con botón Reintentar', () => {
     render(<RagPage />)
     const input = screen.getByLabelText(/seleccionar archivos/i) as HTMLInputElement
     selectFiles(input, [makeTxtFile('doc.txt', 100)])
+    selectDomain()
     await user.click(screen.getByRole('button', { name: /subir archivos/i }))
     await waitFor(() =>
       expect(screen.getByText(/error del servidor/i)).toBeInTheDocument()
@@ -661,6 +691,7 @@ describe('RagFormV2 — @s18 Error del backend con botón Reintentar', () => {
     render(<RagPage />)
     const input = screen.getByLabelText(/seleccionar archivos/i) as HTMLInputElement
     selectFiles(input, [makeTxtFile('doc.txt', 100)])
+    selectDomain()
     await user.click(screen.getByRole('button', { name: /subir archivos/i }))
     await waitFor(() =>
       expect(screen.getByRole('button', { name: /reintentar/i })).toBeInTheDocument()
@@ -673,6 +704,7 @@ describe('RagFormV2 — @s18 Error del backend con botón Reintentar', () => {
     render(<RagPage />)
     const input = screen.getByLabelText(/seleccionar archivos/i) as HTMLInputElement
     selectFiles(input, [makeTxtFile('doc.txt', 100)])
+    selectDomain()
     await user.click(screen.getByRole('button', { name: /subir archivos/i }))
     await waitFor(() =>
       expect(screen.getByRole('button', { name: /reintentar/i })).toBeInTheDocument()
@@ -688,11 +720,12 @@ describe('RagFormV2 — @s19 Reintentar vuelve a llamar al servicio', () => {
   it('llama al servicio y muestra éxito al reintentar exitosamente', async () => {
     mockedUpload
       .mockRejectedValueOnce(new Error('Error'))
-      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce(makeIngestResult())
     const user = userEvent.setup()
     render(<RagPage />)
     const input = screen.getByLabelText(/seleccionar archivos/i) as HTMLInputElement
     selectFiles(input, [makeTxtFile('doc.txt', 100)])
+    selectDomain()
 
     await user.click(screen.getByRole('button', { name: /subir archivos/i }))
     await waitFor(() =>
@@ -701,14 +734,16 @@ describe('RagFormV2 — @s19 Reintentar vuelve a llamar al servicio', () => {
 
     await user.click(screen.getByRole('button', { name: /reintentar/i }))
     await waitFor(() =>
-      expect(screen.getByText(/correctamente/i)).toBeInTheDocument()
+      expect(screen.getByText(/se indexaron/i)).toBeInTheDocument()
     )
     expect(mockedUpload).toHaveBeenCalledTimes(2)
   })
 
   it('muestra indicador de carga al reintentar', async () => {
-    let resolveRetry!: () => void
-    const retryPromise = new Promise<void>((r) => { resolveRetry = r })
+    let resolveRetry!: (value: ReturnType<typeof makeIngestResult>) => void
+    const retryPromise = new Promise<ReturnType<typeof makeIngestResult>>((r) => {
+      resolveRetry = r
+    })
     mockedUpload
       .mockRejectedValueOnce(new Error('Error'))
       .mockReturnValueOnce(retryPromise)
@@ -716,6 +751,7 @@ describe('RagFormV2 — @s19 Reintentar vuelve a llamar al servicio', () => {
     render(<RagPage />)
     const input = screen.getByLabelText(/seleccionar archivos/i) as HTMLInputElement
     selectFiles(input, [makeTxtFile('doc.txt', 100)])
+    selectDomain()
 
     await user.click(screen.getByRole('button', { name: /subir archivos/i }))
     await waitFor(() =>
@@ -725,7 +761,7 @@ describe('RagFormV2 — @s19 Reintentar vuelve a llamar al servicio', () => {
     await user.click(screen.getByRole('button', { name: /reintentar/i }))
     expect(screen.getByRole('status')).toBeInTheDocument()
 
-    resolveRetry()
+    resolveRetry(makeIngestResult())
   })
 })
 
@@ -759,6 +795,7 @@ describe('RagFormV2 — @s21 Zona y botones × deshabilitados durante carga', ()
     render(<RagPage />)
     const input = screen.getByLabelText(/seleccionar archivos/i) as HTMLInputElement
     selectFiles(input, [makeTxtFile('doc.txt', 100)])
+    selectDomain()
     await user.click(screen.getByRole('button', { name: /subir archivos/i }))
     const dropZone = screen.getByRole('region', { name: /zona de carga/i })
     expect(dropZone).toHaveAttribute('data-loading', 'true')
@@ -770,6 +807,7 @@ describe('RagFormV2 — @s21 Zona y botones × deshabilitados durante carga', ()
     render(<RagPage />)
     const input = screen.getByLabelText(/seleccionar archivos/i) as HTMLInputElement
     selectFiles(input, [makeTxtFile('doc.txt', 100)])
+    selectDomain()
     await user.click(screen.getByRole('button', { name: /subir archivos/i }))
     const removeBtn = screen.getByRole('button', { name: /eliminar doc\.txt/i })
     expect(removeBtn).toBeDisabled()
@@ -786,6 +824,7 @@ describe('RagFormV2 — @s22 Drop ignorado durante la carga', () => {
     render(<RagPage />)
     const input = screen.getByLabelText(/seleccionar archivos/i) as HTMLInputElement
     selectFiles(input, [makeTxtFile('original.txt', 100)])
+    selectDomain()
     await user.click(screen.getByRole('button', { name: /subir archivos/i }))
 
     const dropZone = screen.getByRole('region', { name: /zona de carga/i })
@@ -800,6 +839,7 @@ describe('RagFormV2 — @s22 Drop ignorado durante la carga', () => {
     render(<RagPage />)
     const input = screen.getByLabelText(/seleccionar archivos/i) as HTMLInputElement
     selectFiles(input, [makeTxtFile('original.txt', 100)])
+    selectDomain()
     await user.click(screen.getByRole('button', { name: /subir archivos/i }))
 
     const dropZone = screen.getByRole('region', { name: /zona de carga/i })
@@ -1150,12 +1190,13 @@ describe('RagFormV2 — Mutant 5: removeFile limpia error cuando updated.length 
     // 5th file triggers count error.
     selectFiles(input, [makeTxtFile('g5.txt', 100)])
     expect(screen.getByRole('alert')).toHaveTextContent(/4 archivos/i)
+    selectDomain()
 
     // Remove one: updated.length = 3 (<= 4 and < 4 both true). Error clears.
     await user.click(screen.getByRole('button', { name: /eliminar g1\.txt/i }))
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
 
-    // The button should now be enabled (3 valid files, no error).
+    // The button should now be enabled (3 valid files, dominio elegido, no error).
     expect(
       screen.getByRole('button', { name: /subir archivos/i })
     ).not.toBeDisabled()
@@ -1514,13 +1555,122 @@ describe('RagFormV2 — @s23 Archivo de 0 bytes aceptado', () => {
     expect(sizeElements.length).toBeGreaterThanOrEqual(1)
   })
 
-  it('el botón "Subir archivos" está habilitado', () => {
+  it('el botón "Subir archivos" está habilitado con dominio elegido', () => {
     render(<RagPage />)
     const input = screen.getByLabelText(/seleccionar archivos/i) as HTMLInputElement
     const emptyFile = makeTxtFile('vacio.txt', 0)
     selectFiles(input, [emptyFile])
+    selectDomain()
     expect(
       screen.getByRole('button', { name: /subir archivos/i })
     ).not.toBeDisabled()
+  })
+})
+
+// ════════════════════════════════════════════════════════════════
+// rag-domain-metadata (feature 14) — selector de dominio en /rag
+// ════════════════════════════════════════════════════════════════
+
+// ────────────────────────────────────────────────────────────────
+// rag-domain-metadata @s3 — El selector de dominio se muestra como fieldset
+// con tres opciones, ninguna preseleccionada
+// ────────────────────────────────────────────────────────────────
+describe('rag-domain-metadata — @s3 Fieldset del selector de dominio, sin preselección', () => {
+  it('muestra un fieldset (role="group") con la leyenda "Dominio de la base de conocimiento"', () => {
+    render(<RagPage />)
+    expect(
+      screen.getByRole('group', { name: /dominio de la base de conocimiento/i })
+    ).toBeInTheDocument()
+  })
+
+  it('muestra el texto de ayuda asociado al fieldset', () => {
+    render(<RagPage />)
+    expect(
+      screen.getByText('Todos los archivos de esta carga se indexan en el dominio elegido.')
+    ).toBeInTheDocument()
+  })
+
+  it('muestra tres opciones de radio con las etiquetas RR.HH., Tecnología y Finanzas', () => {
+    render(<RagPage />)
+    expect(screen.getByRole('radio', { name: /rr\.hh\./i })).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: /tecnología/i })).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: /finanzas/i })).toBeInTheDocument()
+  })
+
+  it('ninguna de las tres opciones está seleccionada al renderizar', () => {
+    render(<RagPage />)
+    const radios = screen.getAllByRole('radio')
+    expect(radios).toHaveLength(3)
+    radios.forEach((radio) => expect(radio).not.toBeChecked())
+  })
+})
+
+// ────────────────────────────────────────────────────────────────
+// rag-domain-metadata @s4 — El botón permanece deshabilitado sin dominio
+// elegido aunque haya archivos válidos, y se habilita al elegir uno
+// ────────────────────────────────────────────────────────────────
+describe('rag-domain-metadata — @s4 Botón deshabilitado sin dominio, habilitado al elegirlo', () => {
+  it('el botón sigue deshabilitado con archivos válidos pero sin dominio elegido', () => {
+    render(<RagPage />)
+    const input = screen.getByLabelText(/seleccionar archivos/i) as HTMLInputElement
+    selectFiles(input, [makeTxtFile('doc.txt', 100)])
+    expect(screen.getByRole('button', { name: /subir archivos/i })).toBeDisabled()
+  })
+
+  it('el botón pasa a estar habilitado al elegir el dominio "Tecnología"', () => {
+    render(<RagPage />)
+    const input = screen.getByLabelText(/seleccionar archivos/i) as HTMLInputElement
+    selectFiles(input, [makeTxtFile('doc.txt', 100)])
+    expect(screen.getByRole('button', { name: /subir archivos/i })).toBeDisabled()
+
+    fireEvent.click(screen.getByRole('radio', { name: /tecnología/i }))
+
+    expect(screen.getByRole('button', { name: /subir archivos/i })).not.toBeDisabled()
+    expect(screen.getByRole('radio', { name: /tecnología/i })).toBeChecked()
+  })
+})
+
+// ────────────────────────────────────────────────────────────────
+// rag-domain-metadata @s5 — El selector de dominio se deshabilita durante
+// la carga
+// ────────────────────────────────────────────────────────────────
+describe('rag-domain-metadata — @s5 Selector de dominio deshabilitado durante la carga', () => {
+  it('las tres opciones del selector quedan deshabilitadas mientras status es "loading"', async () => {
+    mockedUpload.mockReturnValue(new Promise(() => undefined))
+    const user = userEvent.setup()
+    render(<RagPage />)
+    const input = screen.getByLabelText(/seleccionar archivos/i) as HTMLInputElement
+    selectFiles(input, [makeTxtFile('doc.txt', 100)])
+    selectDomain()
+
+    await user.click(screen.getByRole('button', { name: /subir archivos/i }))
+
+    screen.getAllByRole('radio').forEach((radio) => expect(radio).toBeDisabled())
+  })
+})
+
+// ────────────────────────────────────────────────────────────────
+// rag-domain-metadata @s6 — Tras un envío exitoso el dominio elegido se
+// conserva y el mensaje de éxito usa los datos reales de la respuesta
+// ────────────────────────────────────────────────────────────────
+describe('rag-domain-metadata — @s6 Dominio persiste tras el éxito y mensaje con datos reales', () => {
+  it('muestra el mensaje "Se indexaron 57 fragmentos de 3 archivos en la base de RR.HH." y conserva la selección', async () => {
+    mockedUpload.mockResolvedValue(
+      makeIngestResult({ domain: 'hr', documentsReceived: 3, chunksIndexed: 57, totalInStore: 240 })
+    )
+    const user = userEvent.setup()
+    render(<RagPage />)
+    const input = screen.getByLabelText(/seleccionar archivos/i) as HTMLInputElement
+    selectFiles(input, [makeTxtFile('doc.txt', 100)])
+    selectDomain(/rr\.hh\./i)
+
+    await user.click(screen.getByRole('button', { name: /subir archivos/i }))
+
+    await waitFor(() =>
+      expect(
+        screen.getByText('Se indexaron 57 fragmentos de 3 archivos en la base de RR.HH.')
+      ).toBeInTheDocument()
+    )
+    expect(screen.getByRole('radio', { name: /rr\.hh\./i })).toBeChecked()
   })
 })

@@ -148,10 +148,12 @@
       "id": 14,
       "name": "rag-domain-metadata",
       "title": "Selección de dominio al cargar conocimiento",
-      "description": "El RAG AGENT API exige domain (\"hr\"|\"tech\"|\"finance\") en POST /api/ingest, pero ragService.ts hoy solo manda documents — la llamada real falla. Agregar selector de dominio a /rag: un dominio por carga (aplica a toda la tanda de archivos), enviado en el payload. Backlog, no arrancar hasta que se confirme.",
+      "description": "El RAG AGENT API exige domain (\"hr\"|\"tech\"|\"finance\") en POST /api/ingest, pero ragService.ts hoy solo manda documents — la llamada real falla. Agregar selector de dominio a /rag (fieldset + 3 radios, sin preselección), retema RagPage a Tailwind 1:1, elimina useRagUpload (código muerto, no montado por ninguna página) reconectando tracking en useRagForm. CORS de RAG AGENT API resuelto aparte por el tech-lead. source=\"api\" fijo queda fuera de alcance (requiere cambiar el backend).",
       "owner": "Facundo Bettella",
       "sdd": true,
-      "status": "pending"
+      "status": "done",
+      "mode": "test-after",
+      "measure": false
     }
   ]
 }

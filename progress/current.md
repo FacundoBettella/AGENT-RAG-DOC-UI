@@ -4,11 +4,9 @@
 > Mientras trabajas, **mantenlo actualizado en tiempo real**, no al final.
 
 - **Feature en curso:** ninguna
-- **Estado:** features 10, 11, 12 y 13 DONE. 10-12 commiteadas (3bccd0a chore harness,
-  7f6123e feat 10+11, ccf542f feat 12); 13 sin commitear todavía. Todas las features
-  sdd del backlog original (10-13) completas — solo queda 14 (rag-domain-metadata) en
-  backlog, sin confirmar. Fix de entorno en `profiles/react/test.sh` (no
-  `profiles/active/`, que init.sh regenera cada corrida).
+- **Estado:** features 10-14 DONE. 10-13 commiteadas (3bccd0a chore harness, 7f6123e
+  feat 10+11, ccf542f feat 12, 92d0cc2 feat 13); 14 sin commitear todavía. Fix de
+  entorno en `profiles/react/test.sh` (no `profiles/active/`, que init.sh regenera).
 - **Backlog:** 14 — rag-domain-metadata (bug real: ragService.ts no manda `domain`, que
   RAG AGENT API exige en POST /api/ingest; un dominio por carga). También candidato para
   arreglar que /api/ingest indexa con source="api" fijo (pierde nombre de archivo real,
@@ -58,7 +56,15 @@
   RECHAZÓ la 1ra pasada solo por faltar `specs/prompts-config/tdd.md` (trazabilidad
   @s→test, artefacto obligatorio) — agregado sin tocar código, 2da pasada APROBADA.
 
+- **Feature 14 — rag-domain-metadata:** arregla el bug real de `ragService.upload`
+  (no mandaba `domain`, obligatorio en RAG AGENT API). Selector fieldset+3 radios sin
+  preselección, retema 1:1 de RagPage a Tailwind (cero tokens nuevos), elimina
+  `useRagUpload` (código muerto) reconectando tracking en `useRagForm`. CORS agregado
+  en `RAG AGENT API/src/api/main.py` (repo externo) — mismo criterio que DOC AGENT API
+  en la feature 12. `source="api"` fijo del indexer queda fuera de alcance (requiere
+  tocar el backend). 264 tests verdes. Reviewer APROBADO sin observaciones.
+
 ## Próximo paso
 
-Todas las features del backlog original (10-13) están DONE. Falta commitear la 13.
-Queda 14 (rag-domain-metadata) en backlog, sin confirmar si se arranca.
+Todas las features conocidas (10-14) están DONE. Falta commitear la 14. No queda
+nada más en el backlog — próximo ciclo requiere que el usuario proponga algo nuevo.

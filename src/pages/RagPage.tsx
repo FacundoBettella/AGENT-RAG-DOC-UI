@@ -2,34 +2,24 @@ import { useRef, useState } from 'react'
 import { useRagForm, formatFileSize } from '../hooks/useRagForm'
 import Loading from '../components/Loading/Loading'
 import {
-  PageWrapper,
-  PageTitle,
-  ExplanatoryText,
-  FormArea,
-  DropZone,
-  DropZoneIcon,
-  DropZoneText,
-  HiddenFileInput,
-  FileList,
-  FileItem,
-  FileName,
-  FileSize,
-  RemoveButton,
-  FileSummary,
-  ValidationErrorMessage,
-  SubmitButton,
-  RetryButton,
-  SuccessMessage,
-  ErrorMessage,
-} from './RagPage.styles'
+  DOMAIN_OPTIONS,
+  DOMAIN_FIELDSET_LEGEND,
+  DOMAIN_HELP_TEXT,
+  DOMAIN_HELP_ID,
+  buildSuccessMessage,
+} from './RagPage.constants'
 
-function RagPage() {
+export const RagPage = () => {
   const {
     files,
     validationError,
     isLoading,
     status,
     apiError,
+    domain,
+    setDomain,
+    result,
+    canSubmit,
     addFiles,
     removeFile,
     submit,
@@ -40,8 +30,6 @@ function RagPage() {
   const [isDragging, setIsDragging] = useState(false)
 
   const hasFiles = files.length > 0
-  const canSubmit = hasFiles && validationError === null && !isLoading
-
   const totalSize = files.reduce((acc, f) => acc + f.size, 0)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -79,15 +67,54 @@ function RagPage() {
   }
 
   return (
-    <PageWrapper>
-      <PageTitle>Carga de conocimiento RAG</PageTitle>
-      <ExplanatoryText>
+    <div className="mx-auto max-w-[600px] p-8">
+      <h1 className="mb-4 font-serif text-2xl text-on-surface">Carga de conocimiento RAG</h1>
+      <p className="mb-6 text-on-surface-variant">
         Los archivos seleccionados serán divididos en fragmentos (chunks) e
         indexados para búsqueda semántica en el sistema RAG.
-      </ExplanatoryText>
+      </p>
 
-      <FormArea>
-        <DropZone
+      <div className="flex flex-col gap-4">
+        <fieldset
+          disabled={isLoading}
+          aria-describedby={DOMAIN_HELP_ID}
+          className="flex flex-col gap-3"
+        >
+          <legend className="font-serif text-lg text-on-surface">
+            {DOMAIN_FIELDSET_LEGEND}
+          </legend>
+          <p id={DOMAIN_HELP_ID} className="text-sm text-on-surface-variant">
+            {DOMAIN_HELP_TEXT}
+          </p>
+          <div className="flex flex-wrap gap-3">
+            {DOMAIN_OPTIONS.map((option) => (
+              <label key={option.value} className="cursor-pointer">
+                <input
+                  type="radio"
+                  name="rag-domain"
+                  value={option.value}
+                  checked={domain === option.value}
+                  onChange={() => setDomain(option.value)}
+                  className="peer sr-only"
+                />
+                <span
+                  className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm transition-colors peer-focus-visible:outline-none peer-focus-visible:ring-2 peer-focus-visible:ring-primary peer-disabled:cursor-not-allowed peer-disabled:opacity-50 ${
+                    domain === option.value
+                      ? 'border-primary bg-primary text-on-primary'
+                      : 'border-outline-variant text-on-surface-variant'
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-base" aria-hidden="true">
+                    {option.icon}
+                  </span>
+                  {option.label}
+                </span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+
+        <div
           role="region"
           aria-label="Zona de carga de archivos"
           data-dragging={isDragging ? 'true' : undefined}
@@ -96,12 +123,19 @@ function RagPage() {
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
+          className="flex cursor-pointer flex-col items-center gap-3 rounded-lg border-2 border-dashed border-outline-variant bg-surface-container-low p-8 text-center transition-colors data-[dragging=true]:border-primary data-[loading=true]:cursor-not-allowed data-[loading=true]:opacity-50"
         >
-          <DropZoneIcon role="img" aria-label="ícono de carga">&#128194;</DropZoneIcon>
-          <DropZoneText>
+          <span
+            role="img"
+            aria-label="ícono de carga"
+            className="material-symbols-outlined text-4xl text-on-surface-variant"
+          >
+            upload_file
+          </span>
+          <p className="text-sm text-on-surface-variant">
             Arrastrá tus archivos <code>.txt</code> aquí o hacé clic para seleccionar
-          </DropZoneText>
-          <HiddenFileInput
+          </p>
+          <input
             ref={inputRef}
             type="file"
             multiple
@@ -109,65 +143,79 @@ function RagPage() {
             aria-label="Seleccionar archivos"
             disabled={isLoading}
             onChange={handleChange}
+            className="sr-only"
           />
-        </DropZone>
+        </div>
 
         {hasFiles && (
           <>
-            <FileList>
+            <ul className="flex list-none flex-col gap-2">
               {files.map((file) => (
-                <FileItem key={file.name}>
-                  <FileName>{file.name}</FileName>
-                  <FileSize>{formatFileSize(file.size)}</FileSize>
-                  <RemoveButton
+                <li
+                  key={file.name}
+                  className="flex items-center gap-3 rounded-lg border border-outline-variant bg-surface-container-low p-3"
+                >
+                  <span className="flex-1 break-all text-sm text-on-surface">{file.name}</span>
+                  <span className="shrink-0 whitespace-nowrap text-xs text-on-surface-variant">
+                    {formatFileSize(file.size)}
+                  </span>
+                  <button
                     type="button"
                     aria-label={`Eliminar ${file.name}`}
                     disabled={isLoading}
                     onClick={() => removeFile(file.name)}
+                    className="shrink-0 rounded p-1 text-lg leading-none text-on-surface-variant transition-colors hover:text-error disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     ×
-                  </RemoveButton>
-                </FileItem>
+                  </button>
+                </li>
               ))}
-            </FileList>
-            <FileSummary>
+            </ul>
+            <p className="text-xs text-on-surface-variant">
               {files.length} archivos · {formatFileSize(totalSize)}
-            </FileSummary>
+            </p>
           </>
         )}
 
         {validationError !== null && (
-          <ValidationErrorMessage role="alert">
+          <p role="alert" className="rounded-sm bg-error-container px-4 py-3 text-on-error-container">
             {validationError}
-          </ValidationErrorMessage>
+          </p>
         )}
 
-        <SubmitButton
+        <button
           type="button"
           disabled={!canSubmit}
           onClick={submit}
+          className="self-start rounded-lg bg-primary px-6 py-2.5 font-serif text-on-primary shadow-sm transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
         >
           Subir archivos
-        </SubmitButton>
+        </button>
 
         {isLoading && <Loading />}
 
-        {status === 'success' && (
-          <SuccessMessage>
-            Los archivos fueron indexados correctamente.
-          </SuccessMessage>
+        {status === 'success' && result !== null && (
+          <p className="rounded-lg border-l-4 border-primary bg-surface-container-low p-3 text-on-surface">
+            {buildSuccessMessage(result)}
+          </p>
         )}
 
         {status === 'error' && apiError !== null && (
           <>
-            <ErrorMessage>{apiError}</ErrorMessage>
-            <RetryButton type="button" onClick={retry}>
+            <p className="rounded-sm bg-error-container px-4 py-3 text-on-error-container">
+              {apiError}
+            </p>
+            <button
+              type="button"
+              onClick={retry}
+              className="mt-2 self-start rounded-md border border-on-error-container px-3 py-1.5 text-sm font-medium text-on-error-container transition-colors hover:bg-error-container"
+            >
               Reintentar
-            </RetryButton>
+            </button>
           </>
         )}
-      </FormArea>
-    </PageWrapper>
+      </div>
+    </div>
   )
 }
 

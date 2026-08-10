@@ -1,5 +1,6 @@
 export const API_ROUTES = {
   QUERY: '/api/query',
+  INGEST: '/api/ingest',
   ANALYSIS: '/analysis',
   PROMPTS: '/prompts',
 } as const

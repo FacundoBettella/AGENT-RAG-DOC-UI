@@ -203,20 +203,22 @@ describe('hrService — @s6: lee VITE_RAG_API_BASE_URL para construir la URL bas
 // ragService — @s7
 // ──────────────────────────────────────────────
 
-describe('ragService — @s7: envía POST /api/ingest con el array documents', () => {
-  it('llama a axios.post con la URL correcta y el body { documents }', async () => {
+describe('ragService — @s7: envía POST /api/ingest con el body { domain, documents }', () => {
+  it('llama a axios.post con la URL correcta y el body { domain, documents }', async () => {
     vi.stubEnv('VITE_RAG_API_BASE_URL', 'http://api.mercurial.local')
-    mockedAxiosPost.mockResolvedValue({ data: { message: 'ok' } })
+    mockedAxiosPost.mockResolvedValue({
+      data: { ingest_result: { documents_received: 2, chunks_indexed: 10 } },
+    })
 
     const fileA = new File(['Texto A'], 'a.txt', { type: 'text/plain' })
     const fileB = new File(['Texto B'], 'b.txt', { type: 'text/plain' })
 
     const { ragService } = await import('../src/services/ragService')
-    await ragService.upload([fileA, fileB])
+    await ragService.upload([fileA, fileB], 'tech')
 
     expect(mockedAxiosPost).toHaveBeenCalledWith(
       'http://api.mercurial.local/api/ingest',
-      { documents: ['Texto A', 'Texto B'] }
+      { domain: 'tech', documents: ['Texto A', 'Texto B'] }
     )
   })
 })
@@ -228,17 +230,19 @@ describe('ragService — @s7: envía POST /api/ingest con el array documents', (
 describe('ragService — @s8: construye el array leyendo cada archivo', () => {
   it('el array documents contiene el texto plano del archivo como primer elemento', async () => {
     vi.stubEnv('VITE_RAG_API_BASE_URL', 'http://api.mercurial.local')
-    mockedAxiosPost.mockResolvedValue({ data: { message: 'ok' } })
+    mockedAxiosPost.mockResolvedValue({
+      data: { ingest_result: { documents_received: 1, chunks_indexed: 5 } },
+    })
 
     const content = 'Política de licencias\n...'
     const file = new File([content], 'licencias.txt', { type: 'text/plain' })
 
     const { ragService } = await import('../src/services/ragService')
-    await ragService.upload([file])
+    await ragService.upload([file], 'hr')
 
     expect(mockedAxiosPost).toHaveBeenCalledWith(
       expect.any(String),
-      { documents: ['Política de licencias\n...'] }
+      { domain: 'hr', documents: ['Política de licencias\n...'] }
     )
   })
 })
@@ -247,15 +251,26 @@ describe('ragService — @s8: construye el array leyendo cada archivo', () => {
 // ragService — @s9
 // ──────────────────────────────────────────────
 
-describe('ragService — @s9: resuelve sin valor ante respuesta HTTP 200', () => {
-  it('la promesa resuelve (void) sin lanzar ningún error', async () => {
+describe('ragService — @s9: ya no resuelve (void): resuelve con el IngestResult traducido', () => {
+  it('la promesa resuelve con un objeto (no void) con los campos de la ingesta', async () => {
     vi.stubEnv('VITE_RAG_API_BASE_URL', 'http://api.mercurial.local')
-    mockedAxiosPost.mockResolvedValue({ data: { message: 'Documentos indexados.' } })
+    mockedAxiosPost.mockResolvedValue({
+      data: { ingest_result: { documents_received: 2, chunks_indexed: 10, total_in_store: 50 } },
+    })
 
     const file = new File(['contenido'], 'doc.txt', { type: 'text/plain' })
     const { ragService } = await import('../src/services/ragService')
 
-    await expect(ragService.upload([file])).resolves.toBeUndefined()
+    const result = await ragService.upload([file], 'hr')
+
+    expect(result).not.toBeUndefined()
+    expect(typeof result).toBe('object')
+    expect(result).toEqual({
+      domain: 'hr',
+      documentsReceived: 2,
+      chunksIndexed: 10,
+      totalInStore: 50,
+    })
   })
 })
 
@@ -263,15 +278,25 @@ describe('ragService — @s9: resuelve sin valor ante respuesta HTTP 200', () =>
 // ragService — @s10
 // ──────────────────────────────────────────────
 
-describe('ragService — @s10: resuelve sin valor ante respuesta HTTP 204 sin body', () => {
-  it('la promesa resuelve (void) sin lanzar ningún error', async () => {
+describe('ragService — @s10: lanza Error si la respuesta no trae un ingest_result válido', () => {
+  it('rechaza con un Error cuando la respuesta HTTP 200 no trae ingest_result', async () => {
+    vi.stubEnv('VITE_RAG_API_BASE_URL', 'http://api.mercurial.local')
+    mockedAxiosPost.mockResolvedValue({ data: { message: 'ok' } })
+
+    const file = new File(['contenido'], 'doc.txt', { type: 'text/plain' })
+    const { ragService } = await import('../src/services/ragService')
+
+    await expect(ragService.upload([file], 'hr')).rejects.toThrow(Error)
+  })
+
+  it('rechaza con un Error cuando la respuesta HTTP 204 no trae body', async () => {
     vi.stubEnv('VITE_RAG_API_BASE_URL', 'http://api.mercurial.local')
     mockedAxiosPost.mockResolvedValue({ data: null, status: 204 })
 
     const file = new File(['contenido'], 'doc.txt', { type: 'text/plain' })
     const { ragService } = await import('../src/services/ragService')
 
-    await expect(ragService.upload([file])).resolves.toBeUndefined()
+    await expect(ragService.upload([file], 'hr')).rejects.toThrow(Error)
   })
 })
 
@@ -291,7 +316,7 @@ describe('ragService — @s11: lanza Error con el mensaje del backend ante respu
     const file = new File(['contenido'], 'doc.txt', { type: 'text/plain' })
     const { ragService } = await import('../src/services/ragService')
 
-    await expect(ragService.upload([file])).rejects.toThrow('Formato de documento inválido.')
+    await expect(ragService.upload([file], 'hr')).rejects.toThrow('Formato de documento inválido.')
   })
 })
 
@@ -311,7 +336,7 @@ describe('ragService — @s12: lanza Error con el mensaje del backend ante respu
     const file = new File(['contenido'], 'doc.txt', { type: 'text/plain' })
     const { ragService } = await import('../src/services/ragService')
 
-    await expect(ragService.upload([file])).rejects.toThrow('Servicio temporalmente no disponible.')
+    await expect(ragService.upload([file], 'hr')).rejects.toThrow('Servicio temporalmente no disponible.')
   })
 })
 
@@ -331,7 +356,7 @@ describe('ragService — @s13: relanza como Error tipado, no como AxiosError exp
     const file = new File(['contenido'], 'doc.txt', { type: 'text/plain' })
     const { ragService } = await import('../src/services/ragService')
 
-    const error = await ragService.upload([file]).catch((e: unknown) => e)
+    const error = await ragService.upload([file], 'hr').catch((e: unknown) => e)
     expect(error).toBeInstanceOf(Error)
     expect((error as Error).message).toBe('Algún error.')
     expect((error as Record<string, unknown>).isAxiosError).toBeUndefined()
@@ -348,7 +373,7 @@ describe('ragService — @s14: lanza Error sin llamar a la API si lista vacía',
 
     const { ragService } = await import('../src/services/ragService')
 
-    await expect(ragService.upload([])).rejects.toThrow()
+    await expect(ragService.upload([], 'hr')).rejects.toThrow()
     expect(mockedAxiosPost).not.toHaveBeenCalled()
   })
 })
@@ -360,16 +385,82 @@ describe('ragService — @s14: lanza Error sin llamar a la API si lista vacía',
 describe('ragService — @s15: lee VITE_RAG_API_BASE_URL para construir la URL base', () => {
   it('usa VITE_RAG_API_BASE_URL para construir la URL del request a /api/ingest', async () => {
     vi.stubEnv('VITE_RAG_API_BASE_URL', 'http://api.mercurial.local')
-    mockedAxiosPost.mockResolvedValue({ data: { message: 'ok' } })
+    mockedAxiosPost.mockResolvedValue({
+      data: { ingest_result: { documents_received: 1, chunks_indexed: 5 } },
+    })
 
     const file = new File(['contenido'], 'doc.txt', { type: 'text/plain' })
     const { ragService } = await import('../src/services/ragService')
-    await ragService.upload([file])
+    await ragService.upload([file], 'hr')
 
     expect(mockedAxiosPost).toHaveBeenCalledWith(
       'http://api.mercurial.local/api/ingest',
       expect.any(Object)
     )
+  })
+})
+
+// ──────────────────────────────────────────────
+// rag-domain-metadata (feature 14) — ragService.upload(files, domain)
+// ──────────────────────────────────────────────
+
+describe('rag-domain-metadata @s1: arma el body { domain, documents }, pega a /api/ingest y traduce la respuesta a camelCase', () => {
+  it('envía el body con el dominio pasado como parámetro y resuelve el IngestResult traducido', async () => {
+    vi.stubEnv('VITE_RAG_API_BASE_URL', 'http://api.mercurial.local')
+    mockedAxiosPost.mockResolvedValue({
+      data: {
+        ingest_result: {
+          domain: 'hr',
+          documents_received: 2,
+          chunks_indexed: 40,
+        },
+      },
+    })
+
+    const fileA = new File(['Política de licencias'], 'a.txt', { type: 'text/plain' })
+    const fileB = new File(['Manual de accesos'], 'b.txt', { type: 'text/plain' })
+
+    const { ragService } = await import('../src/services/ragService')
+    const result = await ragService.upload([fileA, fileB], 'tech')
+
+    expect(mockedAxiosPost).toHaveBeenCalledWith(
+      expect.stringMatching(/\/api\/ingest$/),
+      { domain: 'tech', documents: ['Política de licencias', 'Manual de accesos'] }
+    )
+    // domain se toma del que se envió ("tech"), no del que vuelve en la respuesta ("hr").
+    // total_in_store ausente en la respuesta → 0.
+    expect(result).toEqual({
+      domain: 'tech',
+      documentsReceived: 2,
+      chunksIndexed: 40,
+      totalInStore: 0,
+    })
+  })
+})
+
+describe('rag-domain-metadata @s2: lanza Error si el payload de respuesta no cumple el contrato mínimo', () => {
+  it('rechaza con Error cuando chunks_indexed no es numérico', async () => {
+    vi.stubEnv('VITE_RAG_API_BASE_URL', 'http://api.mercurial.local')
+    mockedAxiosPost.mockResolvedValue({
+      data: { ingest_result: { documents_received: 2, chunks_indexed: 'cuarenta' } },
+    })
+
+    const file = new File(['contenido'], 'doc.txt', { type: 'text/plain' })
+    const { ragService } = await import('../src/services/ragService')
+
+    await expect(ragService.upload([file], 'hr')).rejects.toThrow(Error)
+  })
+
+  it('rechaza con Error cuando documents_received es negativo', async () => {
+    vi.stubEnv('VITE_RAG_API_BASE_URL', 'http://api.mercurial.local')
+    mockedAxiosPost.mockResolvedValue({
+      data: { ingest_result: { documents_received: -1, chunks_indexed: 40 } },
+    })
+
+    const file = new File(['contenido'], 'doc.txt', { type: 'text/plain' })
+    const { ragService } = await import('../src/services/ragService')
+
+    await expect(ragService.upload([file], 'hr')).rejects.toThrow(Error)
   })
 })
 

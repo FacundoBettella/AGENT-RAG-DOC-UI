@@ -54,12 +54,12 @@ Feature: Integración con endpoints reales
   # ──────────────────────────────────────────────
 
   @s7
-  Scenario: ragService.upload envía POST /api/ingest con el array documents
+  Scenario: ragService.upload envía POST /api/ingest con el body { domain, documents }
     Given que VITE_API_BASE_URL está configurado en el entorno
     And el usuario seleccionó dos archivos .txt con contenidos "Texto A" y "Texto B"
-    When se llama a ragService.upload con esos archivos
+    When se llama a ragService.upload con esos archivos y el dominio "tech"
     Then axios realiza un POST a "{VITE_API_BASE_URL}/api/ingest"
-    And el body enviado contiene { "documents": ["Texto A", "Texto B"] }
+    And el body enviado contiene { "domain": "tech", "documents": ["Texto A", "Texto B"] }
 
   @s8
   Scenario: ragService.upload construye el array de strings leyendo cada archivo con FileReader
@@ -67,17 +67,25 @@ Feature: Integración con endpoints reales
     When se llama a ragService.upload con ese archivo
     Then el array documents enviado contiene el texto plano del archivo como primer elemento
 
+  # Nota: la traducción exacta snake_case → camelCase y los valores concretos
+  # de domain/documentsReceived/chunksIndexed/totalInStore se especifican en
+  # features/rag-domain-metadata.feature @s1. Este escenario solo blinda que
+  # la integración deje de exponer el contrato viejo (void).
   @s9
-  Scenario: ragService.upload resuelve sin valor ante respuesta HTTP 200 exitosa
-    Given que el backend responde HTTP 200 con { "message": "Documentos indexados." }
-    When se llama a ragService.upload con archivos válidos
-    Then la promesa resuelve (void) sin lanzar ningún error
+  Scenario: ragService.upload ya no resuelve (void): ante HTTP 200 resuelve con el IngestResult traducido
+    Given que el backend responde HTTP 200 con un ingest_result válido
+    When se llama a ragService.upload con archivos válidos y un dominio
+    Then la promesa resuelve con un objeto (no void) que representa el resultado de la ingesta
 
+  # Nota: qué hace inválido al payload (chunks_indexed o documents_received no
+  # numérico/negativo) se especifica en features/rag-domain-metadata.feature
+  # @s2. Este escenario solo blinda que la integración deje de resolver
+  # (void) ante una respuesta sin datos de ingesta.
   @s10
-  Scenario: ragService.upload resuelve sin valor ante respuesta HTTP 204 sin body
-    Given que el backend responde HTTP 204 sin body
-    When se llama a ragService.upload con archivos válidos
-    Then la promesa resuelve (void) sin lanzar ningún error
+  Scenario: ragService.upload lanza Error si la respuesta no trae un ingest_result válido
+    Given que el backend responde HTTP 200 sin ingest_result o HTTP 204 sin body
+    When se llama a ragService.upload con archivos válidos y un dominio
+    Then la promesa es rechazada con un Error
 
   @s11
   Scenario: ragService.upload lanza Error con el mensaje del backend ante respuesta 4xx

@@ -16,7 +16,7 @@ vi.mock('../src/services/ragService', () => ({
 }))
 
 import { ragService } from '../src/services/ragService'
-import { useRagUpload } from '../src/hooks/useRagUpload'
+import { useRagForm } from '../src/hooks/useRagForm'
 
 const mockedUpload = vi.mocked(ragService.upload)
 
@@ -32,6 +32,16 @@ function selectFiles(input: HTMLElement, files: File[]) {
   fireEvent.change(input)
 }
 
+// Desde la feature 14 (rag-domain-metadata) canSubmit exige también un dominio
+// elegido. Los escenarios que llegan a habilitar/hacer submit lo necesitan.
+function selectDomain(label: RegExp = /rr\.hh\./i) {
+  fireEvent.click(screen.getByRole('radio', { name: label }))
+}
+
+function makeIngestResult() {
+  return { domain: 'hr' as const, documentsReceived: 1, chunksIndexed: 1, totalInStore: 0 }
+}
+
 beforeEach(() => {
   vi.clearAllMocks()
 })
@@ -45,9 +55,11 @@ describe('RagForm — @s1 Texto explicativo sobre chunking e indexado', () => {
     expect(
       screen.getByText(/fragmentos|chunks/i)
     ).toBeInTheDocument()
+    // getAllByText: desde la feature 14 el texto de ayuda del selector de dominio
+    // también contiene "indexan", además del texto explicativo original.
     expect(
-      screen.getByText(/index/i)
-    ).toBeInTheDocument()
+      screen.getAllByText(/index/i).length
+    ).toBeGreaterThanOrEqual(1)
   })
 })
 
@@ -80,10 +92,11 @@ describe('RagForm — @s3 El botón de subir está deshabilitado sin archivos', 
 // @s4 — Al seleccionar archivos el botón se habilita
 // ────────────────────────────────────────────────────────────────
 describe('RagForm — @s4 Al seleccionar archivos el botón se habilita', () => {
-  it('el botón "Subir archivos" se habilita tras seleccionar uno o más archivos .txt', () => {
+  it('el botón "Subir archivos" se habilita tras seleccionar archivos .txt y elegir dominio', () => {
     render(<RagPage />)
     const input = screen.getByLabelText('Seleccionar archivos') as HTMLInputElement
     selectFiles(input, [makeTxtFile()])
+    selectDomain()
     expect(
       screen.getByRole('button', { name: 'Subir archivos' })
     ).not.toBeDisabled()
@@ -100,6 +113,7 @@ describe('RagForm — @s5 Al enviar aparece el indicador Loading', () => {
     render(<RagPage />)
     const input = screen.getByLabelText('Seleccionar archivos') as HTMLInputElement
     selectFiles(input, [makeTxtFile()])
+    selectDomain()
     await user.click(screen.getByRole('button', { name: 'Subir archivos' }))
     expect(screen.getByRole('status')).toBeInTheDocument()
   })
@@ -115,6 +129,7 @@ describe('RagForm — @s6 El botón y el input se deshabilitan mientras carga', 
     render(<RagPage />)
     const input = screen.getByLabelText('Seleccionar archivos') as HTMLInputElement
     selectFiles(input, [makeTxtFile()])
+    selectDomain()
     await user.click(screen.getByRole('button', { name: 'Subir archivos' }))
     expect(screen.getByRole('button', { name: 'Subir archivos' })).toBeDisabled()
   })
@@ -125,6 +140,7 @@ describe('RagForm — @s6 El botón y el input se deshabilitan mientras carga', 
     render(<RagPage />)
     const input = screen.getByLabelText('Seleccionar archivos') as HTMLInputElement
     selectFiles(input, [makeTxtFile()])
+    selectDomain()
     await user.click(screen.getByRole('button', { name: 'Subir archivos' }))
     expect(
       screen.getByLabelText('Seleccionar archivos') as HTMLInputElement
@@ -137,18 +153,19 @@ describe('RagForm — @s6 El botón y el input se deshabilitan mientras carga', 
 // ────────────────────────────────────────────────────────────────
 describe('RagForm — @s7 Éxito: desaparece Loading y aparece confirmación', () => {
   it('Loading no es visible y aparece mensaje de confirmación tras éxito', async () => {
-    mockedUpload.mockResolvedValue(undefined)
+    mockedUpload.mockResolvedValue(makeIngestResult())
     const user = userEvent.setup()
     render(<RagPage />)
     const input = screen.getByLabelText('Seleccionar archivos') as HTMLInputElement
     selectFiles(input, [makeTxtFile()])
+    selectDomain()
     await user.click(screen.getByRole('button', { name: 'Subir archivos' }))
     await waitFor(() =>
       expect(screen.queryByRole('status')).not.toBeInTheDocument()
     )
     // Mensaje de confirmación específico de éxito
     expect(
-      screen.getByText(/correctamente/i)
+      screen.getByText(/se indexaron/i)
     ).toBeInTheDocument()
   })
 })
@@ -163,6 +180,7 @@ describe('RagForm — @s8 Error: aparece mensaje de error y botón Reintentar', 
     render(<RagPage />)
     const input = screen.getByLabelText('Seleccionar archivos') as HTMLInputElement
     selectFiles(input, [makeTxtFile()])
+    selectDomain()
     await user.click(screen.getByRole('button', { name: 'Subir archivos' }))
     await waitFor(() =>
       expect(screen.queryByRole('status')).not.toBeInTheDocument()
@@ -175,21 +193,33 @@ describe('RagForm — @s8 Error: aparece mensaje de error y botón Reintentar', 
 })
 
 // ────────────────────────────────────────────────────────────────
-// @s-guard — submit no llama al servicio cuando files es null o vacío
+// @s-guard — submit no llama al servicio cuando no hay archivos o dominio
+// (reapuntado de useRagUpload a useRagForm — feature 14, useRagUpload eliminado)
 // ────────────────────────────────────────────────────────────────
-describe('useRagUpload — guard: submit no actúa sin archivos', () => {
-  it('no llama a ragService.upload cuando files es null (estado inicial)', async () => {
-    const { result } = renderHook(() => useRagUpload())
+describe('useRagForm — guard: submit no actúa sin archivos ni dominio', () => {
+  it('no llama a ragService.upload cuando no hay archivos ni dominio (estado inicial)', async () => {
+    const { result } = renderHook(() => useRagForm())
     await act(async () => {
       await result.current.submit()
     })
     expect(mockedUpload).not.toHaveBeenCalled()
   })
 
-  it('no llama a ragService.upload cuando se llama submit con array vacío', async () => {
-    const { result } = renderHook(() => useRagUpload())
+  it('no llama a ragService.upload cuando hay dominio pero la lista de archivos está vacía', async () => {
+    const { result } = renderHook(() => useRagForm())
     await act(async () => {
-      result.current.setFiles([])
+      result.current.setDomain('hr')
+    })
+    await act(async () => {
+      await result.current.submit()
+    })
+    expect(mockedUpload).not.toHaveBeenCalled()
+  })
+
+  it('no llama a ragService.upload cuando hay archivos pero no se eligió dominio', async () => {
+    const { result } = renderHook(() => useRagForm())
+    await act(async () => {
+      result.current.addFiles([makeTxtFile()])
     })
     await act(async () => {
       await result.current.submit()
@@ -203,8 +233,10 @@ describe('useRagUpload — guard: submit no actúa sin archivos', () => {
 // ────────────────────────────────────────────────────────────────
 describe('RagForm — @s9 Reintentar reenvía los mismos archivos', () => {
   it('ragService es llamado nuevamente con los mismos archivos y Loading vuelve a mostrarse', async () => {
-    let resolvePending: () => void
-    const pendingPromise = new Promise<void>((resolve) => { resolvePending = resolve })
+    let resolvePending: (value: ReturnType<typeof makeIngestResult>) => void
+    const pendingPromise = new Promise<ReturnType<typeof makeIngestResult>>((resolve) => {
+      resolvePending = resolve
+    })
 
     mockedUpload
       .mockRejectedValueOnce(new Error('Upload failed'))
@@ -215,6 +247,7 @@ describe('RagForm — @s9 Reintentar reenvía los mismos archivos', () => {
     const input = screen.getByLabelText('Seleccionar archivos') as HTMLInputElement
     const file = makeTxtFile()
     selectFiles(input, [file])
+    selectDomain()
 
     // First submit → error
     await user.click(screen.getByRole('button', { name: 'Subir archivos' }))
@@ -229,6 +262,6 @@ describe('RagForm — @s9 Reintentar reenvía los mismos archivos', () => {
     expect(screen.getByRole('status')).toBeInTheDocument()
 
     // Cleanup: resolve the pending promise
-    resolvePending!()
+    resolvePending!(makeIngestResult())
   })
 })

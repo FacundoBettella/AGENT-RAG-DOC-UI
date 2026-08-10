@@ -1,8 +1,10 @@
 import { useState, useCallback } from 'react'
-import { ragService } from '../services/ragService'
+import { ragService, type RagDomain, type IngestResult } from '../services/ragService'
+import { analyticsService } from '../services/analyticsService'
 import { formatFileSize } from '../utils/formatFileSize'
 
 export { formatFileSize }
+export type { RagDomain, IngestResult }
 
 export const MAX_FILE_SIZE_BYTES = 2 * 1024 * 1024
 export const MAX_TOTAL_SIZE_BYTES = 8 * 1024 * 1024
@@ -16,6 +18,10 @@ export type UseRagFormReturn = {
   isLoading: boolean
   status: RagFormStatus
   apiError: string | null
+  domain: RagDomain | null
+  setDomain: (domain: RagDomain) => void
+  result: IngestResult | null
+  canSubmit: boolean
   addFiles: (incoming: File[]) => void
   removeFile: (name: string) => void
   submit: () => Promise<void>
@@ -31,8 +37,12 @@ export function useRagForm(): UseRagFormReturn {
   const [validationError, setValidationError] = useState<string | null>(null)
   const [status, setStatus] = useState<RagFormStatus>('idle')
   const [apiError, setApiError] = useState<string | null>(null)
+  const [domain, setDomain] = useState<RagDomain | null>(null)
+  const [result, setResult] = useState<IngestResult | null>(null)
 
   const isLoading = status === 'loading'
+  const canSubmit =
+    files.length > 0 && validationError === null && domain !== null && status !== 'loading'
 
   const addFiles = useCallback((incoming: File[]) => {
     setFiles((current) => {
@@ -40,6 +50,7 @@ export function useRagForm(): UseRagFormReturn {
 
       let accumulated = [...current]
       let newValidationError: string | null = null
+      const added: File[] = []
 
       for (const file of incoming) {
         if (!isTxtFile(file)) continue
@@ -63,9 +74,19 @@ export function useRagForm(): UseRagFormReturn {
 
         accumulated = [...accumulated, file]
         existingNames.add(file.name)
+        added.push(file)
       }
 
       setValidationError(newValidationError)
+
+      if (added.length > 0) {
+        const totalSizeBytes = added.reduce((sum, f) => sum + f.size, 0)
+        analyticsService.trackEvent('rag_files_selected', {
+          file_count: added.length,
+          total_size_bytes: totalSizeBytes,
+        })
+      }
+
       return accumulated
     })
   }, [])
@@ -81,14 +102,21 @@ export function useRagForm(): UseRagFormReturn {
     })
   }, [])
 
-  const doSubmit = useCallback(async (filesToSubmit: File[]) => {
+  const doSubmit = useCallback(async (filesToSubmit: File[], domainToSubmit: RagDomain) => {
     if (filesToSubmit.length === 0) return
     setStatus('loading')
     setApiError(null)
     try {
-      await ragService.upload(filesToSubmit)
+      const totalSizeBytes = filesToSubmit.reduce((sum, f) => sum + f.size, 0)
+      const ingestResult = await ragService.upload(filesToSubmit, domainToSubmit)
       setStatus('success')
+      setResult(ingestResult)
       setFiles([])
+      analyticsService.trackEvent('rag_form_submitted', {
+        file_count: filesToSubmit.length,
+        total_size_bytes: totalSizeBytes,
+        domain: domainToSubmit,
+      })
     } catch (err) {
       setStatus('error')
       setApiError(err instanceof Error ? err.message : 'No se pudo subir los archivos.')
@@ -96,14 +124,16 @@ export function useRagForm(): UseRagFormReturn {
   }, [])
 
   const submit = useCallback(async () => {
-    await doSubmit(files)
-  }, [files, doSubmit])
+    if (!canSubmit || domain === null) return
+    await doSubmit(files, domain)
+  }, [files, domain, canSubmit, doSubmit])
 
   const retry = useCallback(() => {
+    if (domain === null) return
     setStatus('idle')
     setApiError(null)
-    doSubmit(files)
-  }, [files, doSubmit])
+    doSubmit(files, domain)
+  }, [files, domain, doSubmit])
 
   return {
     files,
@@ -111,6 +141,10 @@ export function useRagForm(): UseRagFormReturn {
     isLoading,
     status,
     apiError,
+    domain,
+    setDomain,
+    result,
+    canSubmit,
     addFiles,
     removeFile,
     submit,

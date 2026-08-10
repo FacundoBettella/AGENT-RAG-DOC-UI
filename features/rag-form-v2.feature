@@ -126,9 +126,13 @@ Feature: Formulario RAG v2 con drag & drop
     When el formulario se renderiza con ese error
     Then el botón "Subir archivos" está deshabilitado
 
+  # Nota: desde la feature 14 (rag-domain-metadata) el submit exige también un
+  # dominio elegido, y el service resuelve un IngestResult (no void). El
+  # contenido exacto del mensaje de éxito y la persistencia del dominio se
+  # especifican en features/rag-domain-metadata.feature @s5-@s6.
   @s17
   Scenario: Envío exitoso muestra feedback de éxito y limpia el formulario
-    Given que el formulario tiene archivos .txt válidos y el servicio de ingesta está mockeado con respuesta exitosa
+    Given que el formulario tiene archivos .txt válidos, un dominio ya elegido, y el servicio de ingesta está mockeado con respuesta exitosa (IngestResult)
     When el usuario hace clic en "Subir archivos"
     Then se muestra un indicador de carga mientras se procesa
     And al completarse se muestra un mensaje de éxito
@@ -137,7 +141,7 @@ Feature: Formulario RAG v2 con drag & drop
 
   @s18
   Scenario: Error del backend muestra mensaje inline con opción de reintentar
-    Given que el formulario tiene archivos .txt válidos y el servicio de ingesta está mockeado con error de API
+    Given que el formulario tiene archivos .txt válidos, un dominio ya elegido, y el servicio de ingesta está mockeado con error de API
     When el usuario hace clic en "Subir archivos"
     Then se muestra el mensaje de error del backend de forma inline
     And se muestra un botón "Reintentar"
@@ -145,7 +149,7 @@ Feature: Formulario RAG v2 con drag & drop
 
   @s19
   Scenario: El botón "Reintentar" vuelve a llamar al servicio con los mismos archivos
-    Given que el formulario está en estado de error de API con archivos en la lista y el servicio mockeado para responder exitosamente
+    Given que el formulario está en estado de error de API con archivos en la lista, un dominio ya elegido, y el servicio mockeado para responder exitosamente (IngestResult)
     When el usuario hace clic en "Reintentar"
     Then se llama nuevamente al servicio de ingesta con los mismos archivos
     And se muestra el indicador de carga

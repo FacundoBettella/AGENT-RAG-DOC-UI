@@ -120,25 +120,26 @@ describe('useHrChat — @s3: chat_retry_clicked al hacer click en Reintentar', (
 
 // ──────────────────────────────────────────────
 // @s4 — rag_files_selected al seleccionar archivos
+// (reapuntado de useRagUpload a useRagForm — feature 14, useRagUpload eliminado)
 // ──────────────────────────────────────────────
-describe('useRagUpload — @s4: rag_files_selected al seleccionar archivos', () => {
+describe('useRagForm — @s4: rag_files_selected al seleccionar archivos', () => {
   it('trackEvent es llamado con "rag_files_selected", file_count=3 y total_size_bytes=2048', async () => {
-    const { useRagUpload } = await import('../src/hooks/useRagUpload')
-    const { result } = renderHook(() => useRagUpload())
+    const { useRagForm } = await import('../src/hooks/useRagForm')
+    const { result } = renderHook(() => useRagForm())
 
-    const makeFile = (size: number) => {
+    const makeFile = (size: number, name: string) => {
       const content = 'x'.repeat(size)
-      return new File([content], 'file.txt', { type: 'text/plain' })
+      return new File([content], name, { type: 'text/plain' })
     }
 
     const files = [
-      makeFile(512),
-      makeFile(512),
-      makeFile(1024),
+      makeFile(512, 'a.txt'),
+      makeFile(512, 'b.txt'),
+      makeFile(1024, 'c.txt'),
     ]
 
     act(() => {
-      result.current.setFiles(files)
+      result.current.addFiles(files)
     })
 
     expect(mockedTrackEvent).toHaveBeenCalledWith('rag_files_selected', {
@@ -150,18 +151,28 @@ describe('useRagUpload — @s4: rag_files_selected al seleccionar archivos', () 
 
 // ──────────────────────────────────────────────
 // @s5 — rag_form_submitted al completar ingesta exitosamente
+// (reapuntado de useRagUpload a useRagForm — feature 14, useRagUpload eliminado)
 // ──────────────────────────────────────────────
-describe('useRagUpload — @s5: rag_form_submitted al completar ingesta exitosamente', () => {
-  it('trackEvent es llamado con "rag_form_submitted", file_count=2 y total_size_bytes=1024', async () => {
-    mockedUpload.mockResolvedValue(undefined)
-    const { useRagUpload } = await import('../src/hooks/useRagUpload')
-    const { result } = renderHook(() => useRagUpload())
+describe('useRagForm — @s5: rag_form_submitted al completar ingesta exitosamente', () => {
+  it('trackEvent es llamado con "rag_form_submitted", file_count=2, total_size_bytes=1024 y domain', async () => {
+    mockedUpload.mockResolvedValue({
+      domain: 'hr',
+      documentsReceived: 2,
+      chunksIndexed: 10,
+      totalInStore: 10,
+    })
+    const { useRagForm } = await import('../src/hooks/useRagForm')
+    const { result } = renderHook(() => useRagForm())
 
-    const makeFile = (size: number) => new File(['x'.repeat(size)], 'file.txt', { type: 'text/plain' })
-    const files = [makeFile(512), makeFile(512)]
+    const makeFile = (size: number, name: string) =>
+      new File(['x'.repeat(size)], name, { type: 'text/plain' })
+    const files = [makeFile(512, 'a.txt'), makeFile(512, 'b.txt')]
 
     act(() => {
-      result.current.setFiles(files)
+      result.current.addFiles(files)
+    })
+    act(() => {
+      result.current.setDomain('hr')
     })
 
     vi.clearAllMocks()
@@ -173,6 +184,7 @@ describe('useRagUpload — @s5: rag_form_submitted al completar ingesta exitosam
     expect(mockedTrackEvent).toHaveBeenCalledWith('rag_form_submitted', {
       file_count: 2,
       total_size_bytes: 1024,
+      domain: 'hr',
     })
   })
 })
