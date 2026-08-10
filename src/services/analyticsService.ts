@@ -7,6 +7,7 @@ export type EventName =
   | 'rag_form_submitted'
   | 'rag_files_selected'
   | 'contract_analysis_submitted'
+  | 'prompt_saved'
 
 const gaId = import.meta.env.VITE_GA_ID as string | undefined
 if (gaId) {

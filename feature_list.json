@@ -136,10 +136,12 @@
       "id": 13,
       "name": "prompts-config",
       "title": "Configuración: editor de prompts de agentes",
-      "description": "Sección 'Configuración' del sidebar para ver y editar los system prompts de los dos agentes fijos de DOC AGENT API (contextualization_agent, extraction_agent) vía GET/PUT /prompts. Sin alta ni baja, solo lectura y edición de los 2 registros existentes.",
+      "description": "Sección 'Configuración' del sidebar para ver y editar los system prompts de los dos agentes fijos de DOC AGENT API (contextualization_agent, extraction_agent) vía GET/PUT /prompts. Sin alta ni baja, solo lectura y edición de los 2 registros existentes. Guardado con modal de confirmación (sin undo del lado del backend).",
       "owner": "Facundo Bettella",
       "sdd": true,
-      "status": "pending",
+      "status": "done",
+      "mode": "test-after",
+      "measure": false,
       "depends_on": [10]
     },
     {

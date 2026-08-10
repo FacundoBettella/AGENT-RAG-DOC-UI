@@ -1,6 +1,7 @@
 import axios from 'axios'
 import { extractBackendError } from './httpError'
 import { API_ROUTES } from '../constants/apiRoutes'
+import { getDocAgentBaseUrl } from './docAgentBaseUrl'
 
 export interface ContractAnalysis {
   sectionsChanged: string[]
@@ -41,7 +42,7 @@ function parseContractAnalysis(payload: ContractAnalysisPayload): ContractAnalys
 
 export const docAgentService = {
   async analyze(original: File, amendment: File): Promise<ContractAnalysis> {
-    const BASE_URL = import.meta.env.VITE_DOC_AGENT_API_BASE_URL ?? 'http://localhost:8000'
+    const BASE_URL = getDocAgentBaseUrl()
     const formData = new FormData()
     formData.append('original_image', original)
     formData.append('amendment_image', amendment)

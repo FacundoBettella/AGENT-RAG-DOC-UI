@@ -20,6 +20,10 @@ vi.mock('../src/services/ragService', () => ({
   ragService: { upload: vi.fn() },
 }))
 
+vi.mock('../src/services/promptsService', () => ({
+  promptsService: { list: vi.fn(() => new Promise(() => undefined)), update: vi.fn() },
+}))
+
 const THEME_KEY = 'mercurial-theme'
 
 function LocationDisplay() {
@@ -59,10 +63,10 @@ describe('design-system-shell — @s1 El sidebar ofrece los cuatro destinos en e
   })
 })
 
-describe('design-system-shell — @s2 Los destinos de las features futuras muestran "Próximamente"', () => {
-  it('la ruta "/settings" muestra el texto "Próximamente"', () => {
+describe('design-system-shell — @s2 La ruta "/settings" deja de ser un placeholder (feature prompts-config)', () => {
+  it('la ruta "/settings" ya no muestra el texto "Próximamente"', () => {
     renderApp('/settings')
-    expect(screen.getByText('Próximamente')).toBeInTheDocument()
+    expect(screen.queryByText('Próximamente')).not.toBeInTheDocument()
   })
 })
 

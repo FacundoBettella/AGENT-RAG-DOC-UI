@@ -4,10 +4,11 @@
 > Mientras trabajas, **mantenlo actualizado en tiempo real**, no al final.
 
 - **Feature en curso:** ninguna
-- **Estado:** features 10, 11 y 12 DONE (10+11 commiteadas: 3bccd0a chore harness,
-  7f6123e feat 10+11; 12 sin commitear todavía). Pendiente desbloqueada: 13
-  (prompts-config). Fix de entorno en `profiles/react/test.sh` (no `profiles/active/`,
-  que init.sh regenera cada corrida).
+- **Estado:** features 10, 11, 12 y 13 DONE. 10-12 commiteadas (3bccd0a chore harness,
+  7f6123e feat 10+11, ccf542f feat 12); 13 sin commitear todavía. Todas las features
+  sdd del backlog original (10-13) completas — solo queda 14 (rag-domain-metadata) en
+  backlog, sin confirmar. Fix de entorno en `profiles/react/test.sh` (no
+  `profiles/active/`, que init.sh regenera cada corrida).
 - **Backlog:** 14 — rag-domain-metadata (bug real: ragService.ts no manda `domain`, que
   RAG AGENT API exige en POST /api/ingest; un dominio por carga). También candidato para
   arreglar que /api/ingest indexa con source="api" fijo (pierde nombre de archivo real,
@@ -47,6 +48,17 @@
   menores no bloqueantes: function-declaration/key=index preexistentes, useMemo faltante
   en context value, constantes de validación ubicadas en el hook en vez de constants.ts).
 
+- **Feature 13 — prompts-config:** editor de los system prompts de los agentes de DOC
+  AGENT API en `/settings` (reemplaza el placeholder de la feature 10). `promptsService`
+  (list/update contra GET/PUT /prompts), genérico sobre lo que devuelve el backend (no
+  hardcodea los 2 agentes conocidos). Guardado en dos pasos: botón abre un modal de
+  confirmación (overlay propio, no `<dialog>` nativo — no funciona en el jsdom del
+  proyecto), confirmar dispara el PUT y cierra el modal sin esperar la respuesta,
+  analytics `prompt_saved` antes de que resuelva la promesa. 251 tests verdes. Reviewer
+  RECHAZÓ la 1ra pasada solo por faltar `specs/prompts-config/tdd.md` (trazabilidad
+  @s→test, artefacto obligatorio) — agregado sin tocar código, 2da pasada APROBADA.
+
 ## Próximo paso
 
-13 (prompts-config) es la única pendiente desbloqueada. Feature 12 sin commitear.
+Todas las features del backlog original (10-13) están DONE. Falta commitear la 13.
+Queda 14 (rag-domain-metadata) en backlog, sin confirmar si se arranca.
