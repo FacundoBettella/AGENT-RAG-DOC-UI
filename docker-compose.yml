@@ -9,6 +9,7 @@ services:
       - "5173:5173"
     volumes:
       - ./src:/app/src
+      - ./tests:/app/tests
     environment:
       # localhost dentro del contenedor es el propio contenedor, no el host --
       # host.docker.internal es lo que Docker Desktop resuelve a la máquina

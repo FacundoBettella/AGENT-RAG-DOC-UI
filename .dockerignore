@@ -6,6 +6,5 @@ dist
 progress
 specs
 docs
-tests
 coverage
 *.log

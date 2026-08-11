@@ -2,13 +2,12 @@ FROM node:22-slim
 
 WORKDIR /app
 
-# Copiamos solo los manifests primero: si el codigo cambia pero las dependencias
-# no, Docker reusa esta capa cacheada y no reinstala nada.
 COPY package.json package-lock.json ./
 RUN npm ci
 
 COPY index.html tsconfig.json vite.config.ts ./
 COPY src/ ./src/
+COPY tests/ ./tests/
 
 EXPOSE 5173
 

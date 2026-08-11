@@ -316,9 +316,9 @@ contenedor, no la máquina host), así que ambos backends tienen que estar corri
 accesibles desde el host en los puertos `8080`/`8000` respectivamente para que la UI
 funcione de punta a punta.
 
-El bind mount solo cubre `src/`: si tocás `index.html`, `vite.config.ts`, `tsconfig.json`
-o `package.json`, esos cambios quedan "horneados" en la imagen y necesitan
-`docker compose up --build` para reflejarse.
+El bind mount cubre `src/` y `tests/`: si tocás `index.html`, `vite.config.ts`,
+`tsconfig.json` o `package.json`, esos cambios quedan "horneados" en la imagen y
+necesitan `docker compose up --build` para reflejarse.
 
 `node_modules` local **sigue siendo necesario** aunque el front corra por Docker — lo usan
 `./init.sh`/`profiles/react/test.sh` (corren `tsc`/`vitest` directo desde ahí, evitando un bug
