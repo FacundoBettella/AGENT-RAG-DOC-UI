@@ -1,4 +1,4 @@
-name: doc-rag-agent-ui
+name: agent-rag-doc-ui
 
 services:
   app:
@@ -11,12 +11,5 @@ services:
       - ./src:/app/src
       - ./tests:/app/tests
     environment:
-      # localhost dentro del contenedor es el propio contenedor, no el host --
-      # host.docker.internal es lo que Docker Desktop resuelve a la máquina
-      # real, donde corren RAG AGENT API (8080) y DOC AGENT API (8000).
-      VITE_RAG_API_BASE_URL: http://host.docker.internal:8080
-      VITE_DOC_AGENT_API_BASE_URL: http://host.docker.internal:8000
-    extra_hosts:
-      # host-gateway hace que host.docker.internal también resuelva en Linux,
-      # donde Docker no lo agrega automáticamente como sí hace Docker Desktop.
-      - "host.docker.internal:host-gateway"
+      VITE_RAG_API_BASE_URL: http://localhost:8000
+      VITE_DOC_AGENT_API_BASE_URL: http://localhost:8001
