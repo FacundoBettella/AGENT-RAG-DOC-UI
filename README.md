@@ -292,29 +292,46 @@ La UI consume dos backends independientes, cada uno con su propia base URL:
 
 | Variable | Backend | Fallback en código |
 |---|---|---|
-| `VITE_RAG_API_BASE_URL` | RAG AGENT API (`/api/query`, `/api/ingest`) | `http://localhost:8000` |
+| `VITE_RAG_API_BASE_URL` | RAG AGENT API (`/api/query`, `/api/ingest`) | `http://localhost:8080` |
 | `VITE_DOC_AGENT_API_BASE_URL` | DOC AGENT API (`/analysis`) | `http://localhost:8000` |
 
 Se configuran en `.env.local` (gitignoreado). Verificá el puerto real de cada backend en tu
 entorno antes de asumir el fallback — los `docker-compose.yml` de cada repo pueden publicar
 puertos distintos.
 
-## Quickstart
+## Cómo Levantar El Proyecto
+
+La forma soportada de correr la app es **Docker** — no hace falta `npm run dev` local:
+
+```bash
+docker compose up          # levanta el front en http://localhost:5173, con hot-reload
+docker compose up -d       # lo mismo, en background
+docker compose down        # lo baja
+docker compose up --build  # reconstruye la imagen (necesario si cambió package.json)
+```
+
+El `docker-compose.yml` conecta contra `RAG AGENT API` y `DOC AGENT API` vía
+`host.docker.internal` (no `localhost` — dentro de un contenedor, `localhost` es el propio
+contenedor, no la máquina host), así que ambos backends tienen que estar corriendo y
+accesibles desde el host en los puertos `8080`/`8000` respectivamente para que la UI
+funcione de punta a punta.
+
+El bind mount solo cubre `src/`: si tocás `index.html`, `vite.config.ts`, `tsconfig.json`
+o `package.json`, esos cambios quedan "horneados" en la imagen y necesitan
+`docker compose up --build` para reflejarse.
+
+`node_modules` local **sigue siendo necesario** aunque el front corra por Docker — lo usan
+`./init.sh`/`profiles/react/test.sh` (corren `tsc`/`vitest` directo desde ahí, evitando un bug
+de `npm`/`npx` con el `&` de la ruta del proyecto) y el editor (IntelliSense/type-checking).
+No se borra.
+
+## Quickstart (harness)
+
+Verifica que el entorno del harness SDD esté listo (tests, typecheck, estructura de archivos)
+— no levanta la app, es la corrida de verificación que usan los agentes `developer`/`reviewer`:
 
 ```bash
 ./init.sh
-```
-
-Si existe `package.json`, el flujo usa tests de Node:
-
-```bash
-npm test -- --run
-```
-
-Mutacion manual (archivo puntual):
-
-```bash
-node tools/mutate.mjs src/<archivo>.ts --max 50
 ```
 
 ---

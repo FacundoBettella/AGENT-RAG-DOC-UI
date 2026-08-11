@@ -1,6 +1,7 @@
 import axios from 'axios'
 import { extractBackendError } from './httpError'
 import { API_ROUTES } from '../constants/apiRoutes'
+import { getRagBaseUrl } from './ragBaseUrl'
 
 export interface HrChunk {
   content: string
@@ -20,7 +21,7 @@ interface QueryResultPayload {
 
 export const hrService = {
   async query(question: string): Promise<HrAnswer> {
-    const BASE_URL = import.meta.env.VITE_RAG_API_BASE_URL ?? 'http://localhost:8000'
+    const BASE_URL = getRagBaseUrl()
     try {
       const response = await axios.post(`${BASE_URL}${API_ROUTES.QUERY}`, { question })
       const queryResult = (response.data?.query_result ?? {}) as QueryResultPayload

@@ -4,13 +4,15 @@
 > Mientras trabajas, **mantenlo actualizado en tiempo real**, no al final.
 
 - **Feature en curso:** ninguna
-- **Estado:** features 10-14 DONE. 10-13 commiteadas (3bccd0a chore harness, 7f6123e
-  feat 10+11, ccf542f feat 12, 92d0cc2 feat 13); 14 sin commitear todavía. Fix de
-  entorno en `profiles/react/test.sh` (no `profiles/active/`, que init.sh regenera).
-- **Backlog:** 14 — rag-domain-metadata (bug real: ragService.ts no manda `domain`, que
-  RAG AGENT API exige en POST /api/ingest; un dominio por carga). También candidato para
-  arreglar que /api/ingest indexa con source="api" fijo (pierde nombre de archivo real,
-  visible ahora en el panel de fuentes de la feature 11). No arrancar sin confirmación.
+- **Estado:** features 10-15 DONE. 10-14 commiteadas (3bccd0a chore harness, 7f6123e
+  feat 10+11, ccf542f feat 12, 92d0cc2 feat 13, 97ffc80 feat 14); 15 sin commitear
+  todavía. Fix de entorno en `profiles/react/test.sh` (no `profiles/active/`, que
+  init.sh regenera). App corre por Docker (`docker compose up`) — dev server local
+  descontinuado como flujo principal, ver `Dockerfile`/`docker-compose.yml`/
+  `.dockerignore` (sin trackear todavía, fuera del pipeline SDD — infra, no feature).
+- **Deuda conocida sin resolver:** `source="api"` fijo en el indexer de RAG AGENT API
+  (pierde el nombre real del archivo cargado desde /rag, visible en el panel de fuentes
+  del chat) — requiere tocar el schema del backend externo, fuera de alcance hasta ahora.
 
 ## Completado en esta sesión
 
@@ -64,7 +66,18 @@
   en la feature 12. `source="api"` fijo del indexer queda fuera de alcance (requiere
   tocar el backend). 264 tests verdes. Reviewer APROBADO sin observaciones.
 
+- **Feature 15 — fix-rag-fallback-port:** `hrService.ts`/`ragService.ts` tenían
+  `'http://localhost:8000'` (puerto de DOC AGENT API) como fallback cuando
+  `VITE_RAG_API_BASE_URL` no está seteada, en vez de `8080` (RAG AGENT API). Extrae
+  `src/services/ragBaseUrl.ts` (`getRagBaseUrl()`, espejo de `docAgentBaseUrl.ts`) —
+  resuelve deuda de `conventions.md` pedida explícitamente por el usuario, no solo el
+  fix. Reviewer verificó la mordida mutando el código a mano: el naive "no stubear la
+  env var" daba falso positivo porque `.env.local` ya trae `8080` seteado, filtrándose
+  al proceso de vitest — los tests usan `vi.stubEnv(..., undefined)` explícito. 268
+  tests verdes. Reviewer APROBADO sin observaciones.
+
 ## Próximo paso
 
-Todas las features conocidas (10-14) están DONE. Falta commitear la 14. No queda
-nada más en el backlog — próximo ciclo requiere que el usuario proponga algo nuevo.
+Todas las features conocidas (10-15) están DONE. Falta commitear la 15 y el trabajo de
+Docker (Dockerfile, docker-compose.yml, .dockerignore, sección nueva de README). No
+queda nada más en el backlog — próximo ciclo requiere que el usuario proponga algo nuevo.

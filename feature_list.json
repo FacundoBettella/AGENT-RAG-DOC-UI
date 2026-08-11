@@ -154,6 +154,17 @@
       "status": "done",
       "mode": "test-after",
       "measure": false
+    },
+    {
+      "id": 15,
+      "name": "fix-rag-fallback-port",
+      "title": "Fallback de VITE_RAG_API_BASE_URL apunta al puerto equivocado",
+      "description": "hrService.ts y ragService.ts usan 'http://localhost:8000' como fallback cuando VITE_RAG_API_BASE_URL no está seteada, pero RAG AGENT API publica el puerto 8080 (8000 es DOC AGENT API). Fix + extracción a src/services/ragBaseUrl.ts (getRagBaseUrl), mismo patrón que docAgentBaseUrl.ts, resolviendo deuda de conventions.md. Corrige también README.md:295.",
+      "owner": "Facundo Bettella",
+      "sdd": true,
+      "status": "done",
+      "mode": "test-after",
+      "measure": false
     }
   ]
 }

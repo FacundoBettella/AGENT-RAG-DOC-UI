@@ -477,3 +477,91 @@ describe('extractBackendError: objeto plano con response no es instanceof Error'
     expect(extractBackendError(plainObject)).toBeNull()
   })
 })
+
+// ──────────────────────────────────────────────
+// fix-rag-fallback-port (feature 15) — getRagBaseUrl y su fallback
+// ──────────────────────────────────────────────
+
+describe('fix-rag-fallback-port @s1: getRagBaseUrl usa el valor de la variable de entorno cuando está definida', () => {
+  it('hrService.query pega a la URL definida en VITE_RAG_API_BASE_URL, no al fallback', async () => {
+    vi.stubEnv('VITE_RAG_API_BASE_URL', 'http://custom-rag.example.com')
+    mockedAxiosPost.mockResolvedValue({
+      data: { query_result: { system_answer: 'ok', chunks_related: [] } },
+    })
+
+    const { hrService } = await import('../src/services/hrService')
+    await hrService.query('pregunta')
+
+    expect(mockedAxiosPost).toHaveBeenCalledWith(
+      'http://custom-rag.example.com/api/query',
+      { question: 'pregunta' }
+    )
+  })
+})
+
+describe('fix-rag-fallback-port @s2: getRagBaseUrl usa http://localhost:8080 como fallback cuando la variable no está definida', () => {
+  it('sin VITE_RAG_API_BASE_URL definida, tanto hrService como ragService pegan al puerto 8080 (el default es compartido por el módulo, no una coincidencia de cada service)', async () => {
+    // .env.local (gitignoreado) define VITE_RAG_API_BASE_URL=http://localhost:8080 para el
+    // entorno real, y ese valor también llega a import.meta.env en el proceso de test. Para
+    // ejercitar de verdad la rama del fallback (DEFAULT_RAG_BASE_URL) hay que desestubearla
+    // explícitamente a undefined, no alcanza con "no llamar a vi.stubEnv".
+    vi.stubEnv('VITE_RAG_API_BASE_URL', undefined)
+    mockedAxiosPost.mockResolvedValue({
+      data: {
+        query_result: { system_answer: 'ok', chunks_related: [] },
+        ingest_result: { documents_received: 1, chunks_indexed: 1 },
+      },
+    })
+
+    const { hrService } = await import('../src/services/hrService')
+    await hrService.query('pregunta')
+
+    const file = new File(['contenido'], 'doc.txt', { type: 'text/plain' })
+    const { ragService } = await import('../src/services/ragService')
+    await ragService.upload([file], 'hr')
+
+    const [hrUrl] = mockedAxiosPost.mock.calls[0]
+    const [ragUrl] = mockedAxiosPost.mock.calls[1]
+    expect(hrUrl).toBe('http://localhost:8080/api/query')
+    expect(ragUrl).toBe('http://localhost:8080/api/ingest')
+  })
+})
+
+describe('fix-rag-fallback-port @s3: hrService.query pega contra el puerto correcto sin la variable de entorno', () => {
+  it('realiza un POST a http://localhost:8080/api/query', async () => {
+    // Ver comentario del test @s2: hay que forzar la variable a undefined para ejercitar el
+    // fallback, porque .env.local ya la define con un valor real en el proceso de test.
+    vi.stubEnv('VITE_RAG_API_BASE_URL', undefined)
+    mockedAxiosPost.mockResolvedValue({
+      data: { query_result: { system_answer: 'ok', chunks_related: [] } },
+    })
+
+    const { hrService } = await import('../src/services/hrService')
+    await hrService.query('¿Cuántos días de vacaciones tengo?')
+
+    expect(mockedAxiosPost).toHaveBeenCalledWith(
+      'http://localhost:8080/api/query',
+      { question: '¿Cuántos días de vacaciones tengo?' }
+    )
+  })
+})
+
+describe('fix-rag-fallback-port @s4: ragService.upload pega contra el puerto correcto sin la variable de entorno', () => {
+  it('realiza un POST a http://localhost:8080/api/ingest', async () => {
+    // Ver comentario del test @s2: hay que forzar la variable a undefined para ejercitar el
+    // fallback, porque .env.local ya la define con un valor real en el proceso de test.
+    vi.stubEnv('VITE_RAG_API_BASE_URL', undefined)
+    mockedAxiosPost.mockResolvedValue({
+      data: { ingest_result: { documents_received: 1, chunks_indexed: 5 } },
+    })
+
+    const file = new File(['contenido'], 'doc.txt', { type: 'text/plain' })
+    const { ragService } = await import('../src/services/ragService')
+    await ragService.upload([file], 'hr')
+
+    expect(mockedAxiosPost).toHaveBeenCalledWith(
+      'http://localhost:8080/api/ingest',
+      { domain: 'hr', documents: ['contenido'] }
+    )
+  })
+})

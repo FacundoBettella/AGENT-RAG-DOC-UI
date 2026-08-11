@@ -1,6 +1,7 @@
 import axios from 'axios'
 import { extractBackendError } from './httpError'
 import { API_ROUTES } from '../constants/apiRoutes'
+import { getRagBaseUrl } from './ragBaseUrl'
 
 export type RagDomain = 'hr' | 'tech' | 'finance'
 
@@ -41,7 +42,7 @@ function parseIngestResult(domain: RagDomain, payload: IngestResultPayload | und
 
 export const ragService = {
   async upload(files: File[], domain: RagDomain): Promise<IngestResult> {
-    const BASE_URL = import.meta.env.VITE_RAG_API_BASE_URL ?? 'http://localhost:8000'
+    const BASE_URL = getRagBaseUrl()
     if (files.length === 0) {
       throw new Error('No se seleccionaron archivos para cargar.')
     }
