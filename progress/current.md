@@ -4,15 +4,25 @@
 > Mientras trabajas, **mantenlo actualizado en tiempo real**, no al final.
 
 - **Feature en curso:** ninguna
-- **Estado:** features 10-16 DONE. 10-15 commiteadas (3bccd0a chore harness, 7f6123e
+- **Estado:** features 10-17 DONE. 10-16 commiteadas (3bccd0a chore harness, 7f6123e
   feat 10+11, ccf542f feat 12, 92d0cc2 feat 13, 97ffc80 feat 14, e538292 feat 15+docker,
-  1dc9214 fix infra tests/ en Docker); 16 sin commitear todavía. Repo pusheado a
+  1dc9214 fix infra tests/ en Docker, 2c4c716 feat 16, f93917d chore README+red+HMR);
+  17 sin commitear todavía. Repo pusheado a
   https://github.com/FacundoBettella/AGENT-RAG-DOC-UI.git (remote "origin").
 - **Full Docker**: `node_modules` local ELIMINADO — todo corre por contenedor.
   `profiles/react/test.sh` ahora usa `docker compose exec` en vez de `node
   ./node_modules/...` (adentro del contenedor Linux no existe el bug del `&` de
   Windows, así que corre `npm`/`npx` normales). Requiere Docker Desktop arriba para
   que `./init.sh`/tests funcionen — sin fallback local.
+- **Red Docker simplificada**: las URLs de los backends usan `localhost` (no
+  `host.docker.internal`) porque el fetch real lo hace el navegador, no el
+  contenedor — client-side SPA. Esquema de puertos actual: RAG AGENT API en `8000`,
+  DOC AGENT API en `8001`, front en `5173`. `vite.config.ts` tiene
+  `server.watch.usePolling: true` — sin esto, Vite no detecta cambios de archivo a
+  través del bind mount en Windows y sirve versiones viejas del código sin avisar
+  (mordió en la feature 17: el mensaje de error viejo seguía apareciendo pese a que
+  el archivo en disco ya estaba corregido). README.md ya no documenta el harness —
+  solo el producto (qué es, env vars, cómo levantarlo, stack).
 - **Deuda conocida sin resolver:** `source="api"` fijo en el indexer de RAG AGENT API
   (pierde el nombre real del archivo cargado desde /rag, visible en el panel de fuentes
   del chat) — requiere tocar el schema del backend externo, fuera de alcance hasta ahora.
@@ -92,7 +102,14 @@
   README.md) que en realidad eran un fix mío (tech-lead) sin commitear, no del
   developer — se separaron en el commit `1dc9214` y la 2da pasada APROBÓ.
 
+- **Feature 17 — contract-analysis-docx-support:** DOC AGENT API ya soportaba `.docx`
+  (python-docx, extrae párrafos y tablas) pero el frontend solo validaba/comunicaba
+  imágenes. Suma `.docx` a `VALID_EXTENSIONS`, copy neutral (ya no dice "imagen"),
+  ícono por tipo de archivo en la dropzone (`description`/`image`). Original y
+  enmienda pueden ser de tipos distintos entre sí, sin validación cruzada. 273 tests
+  verdes. Reviewer APROBADO sin cambios requeridos.
+
 ## Próximo paso
 
-Todas las features conocidas (10-16) están DONE. Falta commitear+pushear la 16. No
+Todas las features conocidas (10-17) están DONE. Falta commitear+pushear la 17. No
 queda nada más en el backlog — próximo ciclo requiere que el usuario proponga algo nuevo.

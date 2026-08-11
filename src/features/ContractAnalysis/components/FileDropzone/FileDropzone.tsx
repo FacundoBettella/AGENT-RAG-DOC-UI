@@ -12,6 +12,10 @@ const FILE_STATE_CLASSES =
   'flex cursor-pointer items-center justify-between gap-3 rounded-lg bg-surface p-3 ' +
   'transition-colors data-[dragging=true]:ring-2 data-[dragging=true]:ring-primary'
 
+function getFileIcon(fileName: string): string {
+  return fileName.toLowerCase().endsWith('.docx') ? 'description' : 'image'
+}
+
 // El <input> queda siempre montado en la misma posición del árbol (último hijo del
 // <label>), independientemente del estado vacío/con-archivo: así el usuario puede
 // intentar reemplazar un archivo ya cargado sin pasar primero por "Quitar" (@s5), y el
@@ -80,7 +84,7 @@ export const FileDropzone = memo(
             <>
               <span className="flex min-w-0 items-center gap-3">
                 <span className="material-symbols-outlined shrink-0 text-primary" aria-hidden="true">
-                  image
+                  {getFileIcon(file.name)}
                 </span>
                 <span className="truncate text-on-surface">{file.name}</span>
                 <span className="shrink-0 text-xs text-on-surface-variant">

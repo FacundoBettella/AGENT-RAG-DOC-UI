@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor, renderHook, act } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, renderHook, act, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import ContractsPage from '../src/pages/ContractsPage'
@@ -19,6 +19,15 @@ const mockedAnalyze = vi.mocked(docAgentService.analyze)
 const mockedTrackEvent = vi.mocked(analyticsService.trackEvent)
 
 function makeImageFile(name = 'contrato.png', sizeBytes = 100, type = 'image/png'): File {
+  const content = new Uint8Array(sizeBytes)
+  return new File([content], name, { type })
+}
+
+function makeDocxFile(
+  name = 'contrato.docx',
+  sizeBytes = 100,
+  type = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+): File {
   const content = new Uint8Array(sizeBytes)
   return new File([content], name, { type })
 }
@@ -61,7 +70,7 @@ describe('ContractAnalysis — @s5 Rechaza extensión no soportada sin reemplaza
     selectFiles(originalInput, [makeImageFile('contrato.pdf', 100, 'application/pdf')])
 
     expect(
-      screen.getByText('Formato no soportado. Subí una imagen .png, .jpg o .jpeg.')
+      screen.getByText('Formato no soportado. Subí un archivo .png, .jpg, .jpeg o .docx.')
     ).toBeInTheDocument()
     expect(screen.getByText('contrato.png')).toBeInTheDocument()
     expect(mockedAnalyze).not.toHaveBeenCalled()
@@ -78,7 +87,7 @@ describe('ContractAnalysis — @s6 Rechaza una imagen que supera los 10 MB', () 
     const bigFile = makeImageFile('enmienda.jpg', 11 * 1024 * 1024, 'image/jpeg')
     selectFiles(amendmentInput, [bigFile])
 
-    expect(screen.getByText('La imagen supera el límite de 10 MB.')).toBeInTheDocument()
+    expect(screen.getByText('El archivo supera el límite de 10 MB.')).toBeInTheDocument()
     expect(screen.queryByText('enmienda.jpg')).not.toBeInTheDocument()
     expect(screen.getByLabelText('Enmienda')).toBeInTheDocument()
     expect(mockedAnalyze).not.toHaveBeenCalled()
@@ -107,11 +116,11 @@ describe('ContractAnalysis — @s8 El error inline de una dropzone se limpia al 
     render(<ContractsPage />)
     const amendmentInput = screen.getByLabelText('Enmienda') as HTMLInputElement
     selectFiles(amendmentInput, [makeImageFile('enmienda.jpg', 11 * 1024 * 1024, 'image/jpeg')])
-    expect(screen.getByText('La imagen supera el límite de 10 MB.')).toBeInTheDocument()
+    expect(screen.getByText('El archivo supera el límite de 10 MB.')).toBeInTheDocument()
 
     selectFiles(amendmentInput, [makeImageFile('enmienda.png', 2 * 1024 * 1024)])
 
-    expect(screen.queryByText('La imagen supera el límite de 10 MB.')).not.toBeInTheDocument()
+    expect(screen.queryByText('El archivo supera el límite de 10 MB.')).not.toBeInTheDocument()
     expect(screen.getByText('enmienda.png')).toBeInTheDocument()
   })
 })
@@ -125,7 +134,7 @@ describe('ContractAnalysis — @s9 Estado inicial (idle)', () => {
     const panel = screen.getByRole('region', { name: /estado del análisis/i })
     expect(panel).toHaveAttribute('aria-live', 'polite')
     expect(screen.getByText('Inteligencia analítica')).toBeInTheDocument()
-    expect(screen.getByText('01 Transcripción de las imágenes')).toBeInTheDocument()
+    expect(screen.getByText('01 Lectura de los documentos')).toBeInTheDocument()
     expect(screen.getByText('02 Detección de cambios')).toBeInTheDocument()
   })
 })
@@ -147,7 +156,7 @@ describe('ContractAnalysis — @s10 Estado de carga: spinner y texto fijo, sin b
     expect(screen.getByText('Analizando documentos…')).toBeInTheDocument()
     expect(
       screen.getByText(
-        'Puede tardar hasta un minuto: se transcriben las dos imágenes y después se comparan.'
+        'Puede tardar hasta un minuto: se leen los dos documentos y después se comparan.'
       )
     ).toBeInTheDocument()
     expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
@@ -405,5 +414,83 @@ describe('ContractAnalysis — drag & drop carga un archivo válido', () => {
     expect(dropZone).toHaveAttribute('data-dragging', 'true')
     fireEvent.dragLeave(dropZone)
     expect(dropZone).not.toHaveAttribute('data-dragging', 'true')
+  })
+})
+
+// ────────────────────────────────────────────────────────────────
+// Soporte de .docx (contract-analysis-docx-support)
+// ────────────────────────────────────────────────────────────────
+
+// El ícono del estado "con archivo" está en el primer <span class="material-symbols-outlined">
+// dentro del <label> de la dropzone (antes del nombre y del botón "Quitar").
+function getFileIconText(inputLabelText: string): string | null {
+  const label = getDropzoneLabel(inputLabelText)
+  const icon = label.querySelector('.material-symbols-outlined')
+  return icon ? icon.textContent : null
+}
+
+// @s1 — Acepta un archivo .docx válido en la dropzone
+describe('ContractAnalysis — @s1 Acepta un archivo .docx válido en la dropzone', () => {
+  it('carga el archivo .docx y no muestra error', () => {
+    render(<ContractsPage />)
+    const originalInput = screen.getByLabelText('Contrato original') as HTMLInputElement
+    selectFiles(originalInput, [makeDocxFile('contrato.docx', 2 * 1024 * 1024)])
+
+    expect(screen.getByText('contrato.docx')).toBeInTheDocument()
+    expect(
+      screen.queryByText('Formato no soportado. Subí un archivo .png, .jpg, .jpeg o .docx.')
+    ).not.toBeInTheDocument()
+  })
+})
+
+// @s2 — El ícono del archivo cargado depende del tipo; original y enmienda pueden diferir
+describe('ContractAnalysis — @s2 El ícono del archivo cargado depende del tipo, y original y enmienda pueden ser de tipos distintos', () => {
+  it('muestra "description" para el .docx y "image" para el .png, sin errores', () => {
+    render(<ContractsPage />)
+    selectFiles(screen.getByLabelText('Contrato original'), [makeDocxFile('contrato.docx')])
+    selectFiles(screen.getByLabelText('Enmienda'), [makeImageFile('enmienda.png')])
+
+    expect(getFileIconText('Contrato original')).toBe('description')
+    expect(getFileIconText('Enmienda')).toBe('image')
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+})
+
+// @s3 — Rechaza un archivo .doc legado con el mensaje de error actualizado
+describe('ContractAnalysis — @s3 Rechaza un archivo .doc legado con el mensaje de error actualizado', () => {
+  it('muestra el mensaje de formato no soportado, la dropzone queda vacía y no se llama al service', () => {
+    render(<ContractsPage />)
+    const originalInput = screen.getByLabelText('Contrato original') as HTMLInputElement
+    selectFiles(originalInput, [
+      makeImageFile('contrato.doc', 100, 'application/msword'),
+    ])
+
+    expect(
+      screen.getByText('Formato no soportado. Subí un archivo .png, .jpg, .jpeg o .docx.')
+    ).toBeInTheDocument()
+    expect(screen.queryByText('contrato.doc')).not.toBeInTheDocument()
+    expect(mockedAnalyze).not.toHaveBeenCalled()
+  })
+})
+
+// @s4 — El límite de 10 MB también aplica a los archivos .docx
+describe('ContractAnalysis — @s4 El límite de 10 MB también aplica a los archivos .docx', () => {
+  it('muestra el mensaje de tamaño, la dropzone queda vacía y no se llama al service', () => {
+    render(<ContractsPage />)
+    const amendmentInput = screen.getByLabelText('Enmienda') as HTMLInputElement
+    selectFiles(amendmentInput, [makeDocxFile('enmienda.docx', 11 * 1024 * 1024)])
+
+    expect(screen.getByText('El archivo supera el límite de 10 MB.')).toBeInTheDocument()
+    expect(screen.queryByText('enmienda.docx')).not.toBeInTheDocument()
+    expect(mockedAnalyze).not.toHaveBeenCalled()
+  })
+})
+
+// @s5 — La pista de la dropzone comunica los formatos soportados incluyendo DOCX
+describe('ContractAnalysis — @s5 La pista de la dropzone comunica los formatos soportados incluyendo DOCX', () => {
+  it('muestra el texto "PNG, JPG o DOCX (máx. 10 MB)" en la dropzone "Contrato original"', () => {
+    render(<ContractsPage />)
+    const dropZone = getDropzoneLabel('Contrato original')
+    expect(within(dropZone).getByText('PNG, JPG o DOCX (máx. 10 MB)')).toBeInTheDocument()
   })
 })

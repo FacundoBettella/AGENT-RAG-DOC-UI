@@ -2,11 +2,12 @@ import { useCallback, useState } from 'react'
 import { docAgentService, type ContractAnalysis } from '../services/docAgentService'
 import { analyticsService } from '../services/analyticsService'
 
-export const MAX_IMAGE_SIZE_BYTES = 10 * 1024 * 1024
-export const VALID_EXTENSIONS = ['.png', '.jpg', '.jpeg']
+export const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024
+export const VALID_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.docx']
 
-export const UNSUPPORTED_FORMAT_MESSAGE = 'Formato no soportado. Subí una imagen .png, .jpg o .jpeg.'
-export const FILE_TOO_LARGE_MESSAGE = 'La imagen supera el límite de 10 MB.'
+export const UNSUPPORTED_FORMAT_MESSAGE =
+  'Formato no soportado. Subí un archivo .png, .jpg, .jpeg o .docx.'
+export const FILE_TOO_LARGE_MESSAGE = 'El archivo supera el límite de 10 MB.'
 
 export type ContractAnalysisStatus = 'idle' | 'loading' | 'success' | 'error'
 
@@ -33,7 +34,7 @@ function validateFile(file: File): string | null {
   if (!hasValidExtension) {
     return UNSUPPORTED_FORMAT_MESSAGE
   }
-  if (file.size > MAX_IMAGE_SIZE_BYTES) {
+  if (file.size > MAX_FILE_SIZE_BYTES) {
     return FILE_TOO_LARGE_MESSAGE
   }
   return null

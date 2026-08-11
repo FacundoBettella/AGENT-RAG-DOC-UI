@@ -5,18 +5,18 @@ export const ORIGINAL_CARD_TITLE = 'Contrato original'
 export const AMENDMENT_CARD_TITLE = 'Enmienda'
 export const REQUIRED_BADGE_LABEL = 'Requerido'
 
-export const DROPZONE_INSTRUCTIONS = 'Arrastrá la imagen acá o hacé clic para seleccionar'
-export const DROPZONE_HINT = 'PNG o JPG (máx. 10 MB)'
-export const FILE_INPUT_ACCEPT = '.png,.jpg,.jpeg'
+export const DROPZONE_INSTRUCTIONS = 'Arrastrá el documento acá o hacé clic para seleccionar'
+export const DROPZONE_HINT = 'PNG, JPG o DOCX (máx. 10 MB)'
+export const FILE_INPUT_ACCEPT = '.png,.jpg,.jpeg,.docx'
 
 export const SUBMIT_LABEL = 'Analizar documentos'
 export const SUBMIT_LOADING_LABEL = 'Analizando…'
 
 export const IDLE_TITLE = 'Inteligencia analítica'
 export const IDLE_SUBTITLE =
-  'Transcribimos las dos imágenes y comparamos el texto para detectar qué cambió entre el ' +
+  'Leemos los dos documentos y comparamos el texto para detectar qué cambió entre el ' +
   'contrato y su enmienda.'
-export const IDLE_STEP_1_TITLE = '01 Transcripción de las imágenes'
+export const IDLE_STEP_1_TITLE = '01 Lectura de los documentos'
 export const IDLE_STEP_1_TEXT =
   'Se lee el texto de cada contrato preservando su numeración de cláusulas.'
 export const IDLE_STEP_2_TITLE = '02 Detección de cambios'
@@ -25,7 +25,7 @@ export const IDLE_STEP_2_TEXT =
 
 export const LOADING_TITLE = 'Analizando documentos…'
 export const LOADING_NOTE =
-  'Puede tardar hasta un minuto: se transcriben las dos imágenes y después se comparan.'
+  'Puede tardar hasta un minuto: se leen los dos documentos y después se comparan.'
 
 export const RETRY_LABEL = 'Reintentar'
 

@@ -176,6 +176,17 @@
       "status": "done",
       "mode": "test-after",
       "measure": false
+    },
+    {
+      "id": 17,
+      "name": "contract-analysis-docx-support",
+      "title": "Soportar .docx en el analizador de contratos",
+      "description": "DOC AGENT API ya soporta .docx (python-docx, extrae párrafos y tablas) además de imágenes, pero el frontend sigue validando/comunicando solo .png/.jpg/.jpeg (useContractAnalysis.ts VALID_EXTENSIONS, ContractAnalysis.constants.ts copy). Extender validación de extensión, accept del input, y toda la copia que dice 'imagen'/'imágenes' para reflejar ambos formatos soportados. Original y enmienda pueden ser de tipos distintos entre sí.",
+      "owner": "Facundo Bettella",
+      "sdd": true,
+      "status": "done",
+      "mode": "test-after",
+      "measure": false
     }
   ]
 }
