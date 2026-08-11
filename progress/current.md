@@ -4,12 +4,15 @@
 > Mientras trabajas, **mantenlo actualizado en tiempo real**, no al final.
 
 - **Feature en curso:** ninguna
-- **Estado:** features 10-15 DONE. 10-14 commiteadas (3bccd0a chore harness, 7f6123e
-  feat 10+11, ccf542f feat 12, 92d0cc2 feat 13, 97ffc80 feat 14); 15 sin commitear
-  todavía. Fix de entorno en `profiles/react/test.sh` (no `profiles/active/`, que
-  init.sh regenera). App corre por Docker (`docker compose up`) — dev server local
-  descontinuado como flujo principal, ver `Dockerfile`/`docker-compose.yml`/
-  `.dockerignore` (sin trackear todavía, fuera del pipeline SDD — infra, no feature).
+- **Estado:** features 10-16 DONE. 10-15 commiteadas (3bccd0a chore harness, 7f6123e
+  feat 10+11, ccf542f feat 12, 92d0cc2 feat 13, 97ffc80 feat 14, e538292 feat 15+docker,
+  1dc9214 fix infra tests/ en Docker); 16 sin commitear todavía. Repo pusheado a
+  https://github.com/FacundoBettella/AGENT-RAG-DOC-UI.git (remote "origin").
+- **Full Docker**: `node_modules` local ELIMINADO — todo corre por contenedor.
+  `profiles/react/test.sh` ahora usa `docker compose exec` en vez de `node
+  ./node_modules/...` (adentro del contenedor Linux no existe el bug del `&` de
+  Windows, así que corre `npm`/`npx` normales). Requiere Docker Desktop arriba para
+  que `./init.sh`/tests funcionen — sin fallback local.
 - **Deuda conocida sin resolver:** `source="api"` fijo en el indexer de RAG AGENT API
   (pierde el nombre real del archivo cargado desde /rag, visible en el panel de fuentes
   del chat) — requiere tocar el schema del backend externo, fuera de alcance hasta ahora.
@@ -76,8 +79,20 @@
   al proceso de vitest — los tests usan `vi.stubEnv(..., undefined)` explícito. 268
   tests verdes. Reviewer APROBADO sin observaciones.
 
+- **Feature 16 — fix-doc-agent-baseurl-test-coupling:** `tests/PromptsService.test.ts`
+  testeaba el fallback de `getDocAgentBaseUrl()` comparando contra el literal
+  `'http://localhost:8000/prompts'` sin `vi.stubEnv` — mismo patrón de bug que la 15,
+  esta vez para DOC AGENT API. Rompía corriendo dentro de Docker (`docker-compose.yml`
+  sobreescribe la env var a `host.docker.internal:8000`). Fix distinto al de la 15: en
+  vez de forzar el escenario "sin env var", el test usa `vi.mock(..., {spy:true})` y
+  verifica que la función fue invocada y que la URL final se derivó de su retorno — sin
+  literal de host/puerto, pasa con cualquier valor de entorno. Cero cambios en `src/`.
+  268 tests verdes dentro del contenedor. Reviewer RECHAZÓ la 1ra pasada porque el diff
+  incluía 4 archivos de infra Docker (Dockerfile/docker-compose.yml/.dockerignore/
+  README.md) que en realidad eran un fix mío (tech-lead) sin commitear, no del
+  developer — se separaron en el commit `1dc9214` y la 2da pasada APROBÓ.
+
 ## Próximo paso
 
-Todas las features conocidas (10-15) están DONE. Falta commitear la 15 y el trabajo de
-Docker (Dockerfile, docker-compose.yml, .dockerignore, sección nueva de README). No
+Todas las features conocidas (10-16) están DONE. Falta commitear+pushear la 16. No
 queda nada más en el backlog — próximo ciclo requiere que el usuario proponga algo nuevo.

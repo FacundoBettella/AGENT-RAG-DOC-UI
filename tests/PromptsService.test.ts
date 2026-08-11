@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import axios from 'axios'
 
 vi.mock('axios')
+vi.mock('../src/services/docAgentBaseUrl', { spy: true })
 
 const mockedAxiosGet = vi.mocked(axios.get)
 const mockedAxiosPut = vi.mocked(axios.put)
@@ -182,19 +183,25 @@ describe('promptsService.update — PUT /prompts/{agentName} con { system_prompt
 })
 
 // ──────────────────────────────────────────────────────────────────
-// getDocAgentBaseUrl — fallback (soporte de Decisión 3)
+// promptsService construye la URL con getDocAgentBaseUrl() — @s1
 // ──────────────────────────────────────────────────────────────────
 
-describe('getDocAgentBaseUrl — usa http://localhost:8000 como fallback', () => {
-  it('usa el fallback cuando VITE_DOC_AGENT_API_BASE_URL no está definida', async () => {
+describe('promptsService construye la URL con getDocAgentBaseUrl(), sea cual sea el entorno', () => {
+  it('invoca getDocAgentBaseUrl y arma la URL con el valor que devolvió', async () => {
     mockedAxiosGet.mockResolvedValue({
       data: [{ agent_name: 'extraction_agent', system_prompt: 'x' }],
     })
 
+    // Sin resetModules entre estos dos imports: promptsService tiene que recibir
+    // exactamente la misma instancia espiada que observa el test.
+    const { getDocAgentBaseUrl } = await import('../src/services/docAgentBaseUrl')
     const { promptsService } = await import('../src/services/promptsService')
     await promptsService.list()
 
+    const spy = vi.mocked(getDocAgentBaseUrl)
+    expect(spy).toHaveBeenCalledTimes(1)
+
     const [url] = mockedAxiosGet.mock.calls[0]
-    expect(url).toBe('http://localhost:8000/prompts')
+    expect(url).toBe(`${spy.mock.results[0].value}/prompts`)
   })
 })

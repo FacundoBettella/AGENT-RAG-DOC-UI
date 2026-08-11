@@ -165,6 +165,17 @@
       "status": "done",
       "mode": "test-after",
       "measure": false
+    },
+    {
+      "id": 16,
+      "name": "fix-doc-agent-baseurl-test-coupling",
+      "title": "Test de getDocAgentBaseUrl acoplado al valor ambiente de la env var",
+      "description": "tests/PromptsService.test.ts:198 assertea el valor literal 'http://localhost:8000/prompts' sin vi.stubEnv, dependiendo de que VITE_DOC_AGENT_API_BASE_URL del entorno ambiente coincida por casualidad. Rompe corriendo dentro de Docker (docker-compose.yml la sobreescribe a host.docker.internal:8000). Fix: el test verifica que getDocAgentBaseUrl() fue invocada (spy), no el valor exacto de la URL resultante -- mismo patrón de bug que la feature 15, esta vez para DOC AGENT API.",
+      "owner": "Facundo Bettella",
+      "sdd": true,
+      "status": "done",
+      "mode": "test-after",
+      "measure": false
     }
   ]
 }
