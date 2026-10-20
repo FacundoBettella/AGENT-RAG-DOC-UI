@@ -1,7 +1,7 @@
 name: agent-rag-doc-ui
 
 services:
-  app:
+  dev:
     build:
       context: .
       dockerfile: Dockerfile
@@ -10,6 +10,7 @@ services:
     volumes:
       - ./src:/app/src
       - ./tests:/app/tests
+      - ./profiles:/app/profiles:ro
     environment:
       VITE_RAG_API_BASE_URL: http://localhost:8000
       VITE_DOC_AGENT_API_BASE_URL: http://localhost:8001
