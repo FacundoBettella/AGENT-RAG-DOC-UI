@@ -22,7 +22,7 @@ const mockedQuery = vi.mocked(hrService.query)
 const mockedTrackEvent = vi.mocked(analyticsService.trackEvent)
 
 const GREETING_TEXT =
-  '¡Hola! Soy el asistente de Mercurial. Puedo responder consultas sobre RR.HH., ' +
+  '¡Hola! Soy el asistente de Workspace AI. Puedo responder consultas sobre RR.HH., ' +
   'tecnología y finanzas a partir de la base de conocimiento cargada. ¿En qué te ayudo?'
 
 beforeEach(() => {
@@ -66,13 +66,13 @@ describe('HrChat — input se limpia y deshabilita al enviar', () => {
 })
 
 describe('HrChat — indicador de pensando mientras la API responde', () => {
-  it('muestra "Mercurial está procesando tu consulta" mientras carga', async () => {
+  it('muestra "Workspace AI está procesando tu consulta" mientras carga', async () => {
     mockedQuery.mockReturnValue(new Promise(() => undefined))
     const user = userEvent.setup()
     render(<HrChat />)
     await user.type(screen.getByRole('textbox', { name: 'Escribe tu pregunta' }), 'Pregunta')
     await user.keyboard('{Enter}')
-    expect(screen.getByText('Mercurial está procesando tu consulta')).toBeInTheDocument()
+    expect(screen.getByText('Workspace AI está procesando tu consulta')).toBeInTheDocument()
   })
 })
 
@@ -86,7 +86,7 @@ describe('HrChat — la respuesta aparece como bubble; indicador desaparece', ()
     await waitFor(() =>
       expect(screen.getByText('Tenés 15 días hábiles')).toBeInTheDocument()
     )
-    expect(screen.queryByText('Mercurial está procesando tu consulta')).not.toBeInTheDocument()
+    expect(screen.queryByText('Workspace AI está procesando tu consulta')).not.toBeInTheDocument()
   })
 })
 
@@ -146,7 +146,7 @@ describe('HrChat — error de API: bubble de error + botón Reintentar', () => {
         screen.getByText('No se pudo obtener respuesta. Intentá de nuevo.')
       ).toBeInTheDocument()
     )
-    expect(screen.queryByText('Mercurial está procesando tu consulta')).not.toBeInTheDocument()
+    expect(screen.queryByText('Workspace AI está procesando tu consulta')).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Reintentar' })).toBeInTheDocument()
   })
 })
@@ -267,7 +267,7 @@ describe('HrChat — @s5 cada burbuja muestra la hora de creación en formato 24
     await waitFor(() => expect(screen.getByText('Respuesta con hora')).toBeInTheDocument())
 
     expect(screen.getByText('Tú · 09:05')).toBeInTheDocument()
-    expect(screen.getByText('Asistente Mercurial · 09:05')).toBeInTheDocument()
+    expect(screen.getByText('Asistente · 09:05')).toBeInTheDocument()
 
     vi.spyOn(Date, 'now').mockImplementation(realDateNow)
   })

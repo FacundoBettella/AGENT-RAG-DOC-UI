@@ -38,7 +38,7 @@ export const UploadColumn = () => {
                 description
               </span>
             </span>
-            <h3 className="font-serif text-lg text-on-surface">{ORIGINAL_CARD_TITLE}</h3>
+            <h3 className="font-display text-lg text-on-surface">{ORIGINAL_CARD_TITLE}</h3>
           </div>
           <span className="rounded-full bg-surface-container-high px-3 py-1 text-xs font-semibold uppercase tracking-wider text-on-surface-variant">
             {REQUIRED_BADGE_LABEL}
@@ -65,7 +65,7 @@ export const UploadColumn = () => {
                 compare_arrows
               </span>
             </span>
-            <h3 className="font-serif text-lg text-on-surface">{AMENDMENT_CARD_TITLE}</h3>
+            <h3 className="font-display text-lg text-on-surface">{AMENDMENT_CARD_TITLE}</h3>
           </div>
           <span className="rounded-full bg-surface-container-high px-3 py-1 text-xs font-semibold uppercase tracking-wider text-on-surface-variant">
             {REQUIRED_BADGE_LABEL}
@@ -85,7 +85,7 @@ export const UploadColumn = () => {
         type="button"
         disabled={!canSubmit}
         onClick={submit}
-        className="flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-4 font-serif text-lg text-on-primary shadow-md transition-all hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+        className="flex items-center justify-center gap-2 rounded-xl bg-accent px-6 py-4 font-display text-lg text-on-accent shadow-md transition-all hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-50"
       >
         <span className="material-symbols-outlined" aria-hidden="true">
           auto_awesome

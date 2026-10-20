@@ -8,7 +8,7 @@ export const ContextPanel = () => {
   return (
     <aside className="flex w-80 shrink-0 flex-col overflow-y-auto border-l border-outline-variant bg-surface-container-low px-5 py-6">
       <div>
-        <h2 className="font-serif text-lg text-on-surface">Contexto</h2>
+        <h2 className="font-display text-lg text-on-surface">Contexto</h2>
         <p className="mt-1 text-sm text-on-surface-variant">
           Sugerencias y fuentes que respaldan la conversación.
         </p>

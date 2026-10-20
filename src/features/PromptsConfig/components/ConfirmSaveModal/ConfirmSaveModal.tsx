@@ -66,7 +66,7 @@ export const ConfirmSaveModal = ({ agentLabel, onConfirm, onCancel }: ConfirmSav
         onKeyDown={handleKeyDown}
         className="w-full max-w-md rounded-xl bg-surface-container-low p-6 shadow-lg"
       >
-        <h2 id={titleId} className="font-serif text-lg text-on-surface">
+        <h2 id={titleId} className="font-display text-lg text-on-surface">
           {MODAL_TITLE}
         </h2>
         <p id={bodyId} className="mt-3 text-on-surface-variant">
@@ -85,7 +85,7 @@ export const ConfirmSaveModal = ({ agentLabel, onConfirm, onCancel }: ConfirmSav
             ref={confirmButtonRef}
             type="button"
             onClick={onConfirm}
-            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-on-primary"
+            className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-on-accent"
           >
             {MODAL_CONFIRM_LABEL}
           </button>

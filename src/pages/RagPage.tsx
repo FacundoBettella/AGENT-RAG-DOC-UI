@@ -68,7 +68,7 @@ export const RagPage = () => {
 
   return (
     <div className="mx-auto max-w-[600px] p-8">
-      <h1 className="mb-4 font-serif text-2xl text-on-surface">Carga de conocimiento RAG</h1>
+      <h1 className="mb-4 font-display text-2xl text-on-surface">Carga de conocimiento RAG</h1>
       <p className="mb-6 text-on-surface-variant">
         Los archivos seleccionados serán divididos en fragmentos (chunks) e
         indexados para búsqueda semántica en el sistema RAG.
@@ -80,7 +80,7 @@ export const RagPage = () => {
           aria-describedby={DOMAIN_HELP_ID}
           className="flex flex-col gap-3"
         >
-          <legend className="font-serif text-lg text-on-surface">
+          <legend className="font-display text-lg text-on-surface">
             {DOMAIN_FIELDSET_LEGEND}
           </legend>
           <p id={DOMAIN_HELP_ID} className="text-sm text-on-surface-variant">
@@ -100,7 +100,7 @@ export const RagPage = () => {
                 <span
                   className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm transition-colors peer-focus-visible:outline-none peer-focus-visible:ring-2 peer-focus-visible:ring-primary peer-disabled:cursor-not-allowed peer-disabled:opacity-50 ${
                     domain === option.value
-                      ? 'border-primary bg-primary text-on-primary'
+                      ? 'border-primary bg-accent text-on-accent'
                       : 'border-outline-variant text-on-surface-variant'
                   }`}
                 >
@@ -164,7 +164,7 @@ export const RagPage = () => {
                     aria-label={`Eliminar ${file.name}`}
                     disabled={isLoading}
                     onClick={() => removeFile(file.name)}
-                    className="shrink-0 rounded p-1 text-lg leading-none text-on-surface-variant transition-colors hover:text-error disabled:cursor-not-allowed disabled:opacity-40"
+                    className="shrink-0 p-1 text-lg leading-none text-on-surface-variant transition-colors hover:text-error disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     ×
                   </button>
@@ -187,7 +187,7 @@ export const RagPage = () => {
           type="button"
           disabled={!canSubmit}
           onClick={submit}
-          className="self-start rounded-lg bg-primary px-6 py-2.5 font-serif text-on-primary shadow-sm transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+          className="self-start rounded-lg bg-accent px-6 py-2.5 font-display text-on-accent shadow-sm transition-colors hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-50"
         >
           Subir archivos
         </button>

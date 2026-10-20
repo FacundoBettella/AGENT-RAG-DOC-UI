@@ -29,7 +29,7 @@ export const PromptCard = memo(
     return (
       <section aria-labelledby={headingId} className="rounded-xl bg-surface-container p-6 shadow-sm">
         <div className="mb-2 flex flex-wrap items-center gap-2">
-          <h2 id={headingId} className="font-serif text-lg text-on-surface">
+          <h2 id={headingId} className="font-display text-lg text-on-surface">
             {label}
           </h2>
           <span className="font-mono text-xs text-on-surface-variant">{agentName}</span>
@@ -90,7 +90,7 @@ export const PromptCard = memo(
               type="button"
               disabled={!canSave}
               onClick={() => onRequestSave(agentName)}
-              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-on-primary disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-on-accent disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isSaving ? SAVING_LABEL : SAVE_LABEL}
             </button>

@@ -13,7 +13,7 @@ export const ContractAnalysisContainer = ({ children }: ContractAnalysisContaine
   return (
     <ContractAnalysisContext.Provider value={contractAnalysis}>
       <div className="flex flex-1 flex-col overflow-hidden p-8">
-        <h1 className="font-serif text-2xl text-on-surface">{PAGE_TITLE}</h1>
+        <h1 className="font-display text-2xl text-on-surface">{PAGE_TITLE}</h1>
         <p className="mt-1 text-on-surface-variant">{PAGE_SUBTITLE}</p>
         <div className="mt-6 flex flex-1 gap-6 overflow-hidden">{children}</div>
       </div>

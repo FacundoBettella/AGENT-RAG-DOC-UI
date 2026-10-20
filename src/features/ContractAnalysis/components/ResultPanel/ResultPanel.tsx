@@ -31,7 +31,7 @@ export const ResultPanel = () => {
           <span className="material-symbols-outlined mb-6 text-5xl text-primary" aria-hidden="true">
             neurology
           </span>
-          <h2 className="font-serif text-xl text-on-surface">{IDLE_TITLE}</h2>
+          <h2 className="font-display text-xl text-on-surface">{IDLE_TITLE}</h2>
           <p className="mt-3 max-w-md text-on-surface-variant">{IDLE_SUBTITLE}</p>
           <div className="mt-8 flex w-full flex-col gap-4 text-left">
             <div className="flex items-start gap-4 rounded-xl bg-surface p-4 shadow-sm">
@@ -64,7 +64,7 @@ export const ResultPanel = () => {
           >
             progress_activity
           </span>
-          <h2 className="font-serif text-xl text-on-surface">{LOADING_TITLE}</h2>
+          <h2 className="font-display text-xl text-on-surface">{LOADING_TITLE}</h2>
           <p className="mt-3 max-w-md text-on-surface-variant">{LOADING_NOTE}</p>
         </div>
       )}
@@ -86,7 +86,7 @@ export const ResultPanel = () => {
 
       {status === 'success' && result !== null && (
         <div className="flex flex-col gap-6">
-          <h2 className="font-serif text-xl text-on-surface">{SUCCESS_TITLE}</h2>
+          <h2 className="font-display text-xl text-on-surface">{SUCCESS_TITLE}</h2>
 
           <section>
             <h3 className="text-sm font-semibold text-on-surface-variant">

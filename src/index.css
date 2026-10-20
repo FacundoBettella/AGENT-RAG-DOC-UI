@@ -1,75 +1,112 @@
 @import 'tailwindcss';
 
 /*
- * Tokens Material Design 3 — paleta "Sylvan Logic" del mockup.
- * Light es el valor por defecto en @theme; dark sobreescribe vía [data-theme='dark'].
- * Ver specs/design-system-shell/spec.md para la tabla completa y su origen.
+ * Tokens de diseno estilo Material Design 3: amarillo de acento sobre grises carbon.
+ * Light es el valor por defecto en @theme; dark sobreescribe via [data-theme='dark'].
+ * Ver specs/brand-restyle/spec.md para la tabla completa y los pares de contraste.
  */
 @theme {
-  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  --font-serif: 'Source Serif 4', ui-serif, Georgia, serif;
+  --font-sans: 'Overpass', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Overpass', ui-sans-serif, system-ui, sans-serif;
 
-  --radius-sm: 0.25rem;
-  --radius-lg: 0.5rem;
-  --radius-xl: 0.75rem;
+  --radius-xs: 0;
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-xl: 0;
+  --radius-2xl: 0;
+  --radius-3xl: 0;
+  --radius-4xl: 0;
 
-  --color-primary: #173809;
-  --color-on-primary: #ffffff;
-  --color-primary-container: #2d4f1e;
-  --color-on-primary-container: #98c083;
+  --color-primary: #2e2e38;
+  --color-primary-container: #2e2e38;
+  --color-on-primary-container: #ffe600;
 
-  --color-secondary: #77574d;
-  --color-secondary-container: #fed3c7;
-  --color-on-secondary-container: #2c1512;
+  --color-accent: #ffe600;
+  --color-on-accent: #2e2e38;
 
-  --color-tertiary: #511e3a;
-  --color-tertiary-container: #6c3451;
+  --color-secondary-container: #e1e1e6;
+  --color-on-secondary-container: #2e2e38;
 
-  --color-error: #ba1a1a;
-  --color-error-container: #ffdad6;
-  --color-on-error-container: #410002;
+  --color-error: #b3261e;
+  --color-error-container: #fde7e9;
+  --color-on-error-container: #8c1d18;
 
-  --color-background: #f9faf2;
-  --color-surface: #f9faf2;
-  --color-surface-container-low: #f4f4ec;
-  --color-surface-container: #eeeee7;
-  --color-surface-container-high: #e8e9e1;
-  --color-surface-container-highest: #e2e3dc;
+  --color-background: #ffffff;
+  --color-surface: #ffffff;
+  --color-surface-container-low: #f6f6fa;
+  --color-surface-container: #eaeaf2;
+  --color-surface-container-high: #e1e1e6;
+  --color-surface-container-highest: #d7d7de;
 
-  --color-on-surface: #1a1c18;
-  --color-on-surface-variant: #43493e;
+  --color-on-surface: #2e2e38;
+  --color-on-surface-variant: #5c5c68;
 
-  --color-outline: #73796d;
-  --color-outline-variant: #c3c8bb;
+  --color-outline: #6e6e7a;
+  --color-outline-variant: #c4c4cd;
 }
 
 [data-theme='dark'] {
-  --color-primary: #a3d18c;
-  --color-on-primary: #12360a;
-  --color-primary-container: #2d4f1e;
-  --color-on-primary-container: #bfeaa7;
+  --color-primary: #ffe600;
+  --color-primary-container: #3a3a47;
+  --color-on-primary-container: #ffe600;
 
-  --color-secondary: #e7bdb0;
-  --color-secondary-container: #5d3f37;
-  --color-on-secondary-container: #ffdbd1;
+  --color-accent: #ffe600;
+  --color-on-accent: #2e2e38;
 
-  --color-tertiary: #e5b9d0;
-  --color-tertiary-container: #6c3451;
+  --color-secondary-container: #3a3a47;
+  --color-on-secondary-container: #f6f6fa;
 
-  --color-error: #ffb4ab;
-  --color-error-container: #93000a;
+  --color-error: #ff8a80;
+  --color-error-container: #5c1f1f;
   --color-on-error-container: #ffdad6;
 
-  --color-background: #12140f;
-  --color-surface: #12140f;
-  --color-surface-container-low: #1a1c17;
-  --color-surface-container: #1e201b;
-  --color-surface-container-high: #282b25;
-  --color-surface-container-highest: #333630;
+  --color-background: #1a1a24;
+  --color-surface: #1a1a24;
+  --color-surface-container-low: #23232f;
+  --color-surface-container: #2e2e38;
+  --color-surface-container-high: #3a3a47;
+  --color-surface-container-highest: #474754;
 
-  --color-on-surface: #e2e3dc;
-  --color-on-surface-variant: #c3c8bb;
+  --color-on-surface: #f6f6fa;
+  --color-on-surface-variant: #c4c4cd;
 
-  --color-outline: #8d9387;
-  --color-outline-variant: #43493e;
+  --color-outline: #9a9aa6;
+  --color-outline-variant: #3a3a47;
+}
+
+@layer base {
+  body {
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--color-on-surface);
+    background: var(--color-background);
+    -webkit-font-smoothing: antialiased;
+    transition:
+      background-color 0.25s ease,
+      color 0.25s ease;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    line-height: 1.2;
+    margin: 0;
+  }
+
+  button {
+    font-family: inherit;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  input,
+  textarea {
+    font-family: inherit;
+    font-size: inherit;
+  }
 }

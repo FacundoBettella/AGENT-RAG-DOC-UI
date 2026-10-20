@@ -1,4 +1,4 @@
-# project-spec.md — Mercurial
+# project-spec.md — Workspace AI (antes "Mercurial", renombrada en la feature 18)
 
 > Especificación conversada con el humano. Cada sección nace del debate
 > entre Facundo y el `analyst`. El `bdd-writer` destila los
@@ -14,8 +14,9 @@ sobre políticas, beneficios, licencias y procedimientos de RR.HH.
 
 - **React 18 + TypeScript strict.** Sin excepciones a `strict: true`.
 - **Vite** como bundler/dev-server.
-- **styled-components** como única librería de UI. Sin Tailwind, sin MUI,
-  sin Chakra ni similares.
+- ~~**styled-components** como única librería de UI.~~ **SUPERADO:** Tailwind v4
+  desde la feature 10 (`specs/design-system-shell/spec.md`); styled-components
+  eliminado por completo en la feature 18 (`specs/brand-restyle/spec.md`).
 - **@testing-library/react (RTL) + Vitest.** Tests centrados en
   comportamiento observable. Sin snapshots de implementación.
 - **Sin historial de contexto para la API.** Cada pregunta se envía
@@ -24,6 +25,10 @@ sobre políticas, beneficios, licencias y procedimientos de RR.HH.
   `features/` → `pages/`. Un componente nunca llama a `fetch` directamente.
 
 ## Diseño — Sistema de tokens Zelda (sobrio)
+
+> **SUPERADO por `specs/brand-restyle/spec.md` (feature 18, done):** paleta
+> amarillo de acento sobre grises carbón, Overpass como única familia, esquinas
+> rectas. La tabla de abajo queda como registro histórico.
 
 Paleta acordada: inspiración en The Legend of Zelda (parchment, forest,
 gold), aplicada con sobriedad a un sistema interno corporativo.
@@ -817,3 +822,9 @@ accesible desde un footer global que aparece en todas las páginas de la app.
   *Alternativa descartada:* depender del botón atrás del navegador — no
   funciona si el usuario navegó directo a `/faq` por URL; no es una UX
   explícita.
+
+---
+
+## Features (índice)
+
+- **#18 brand-restyle** — Rebranding visual: paleta, tipografía, estética, nombre "Workspace AI" y favicon → [`specs/brand-restyle/spec.md`](specs/brand-restyle/spec.md)

@@ -1,13 +1,13 @@
 import type { Suggestion } from './HrChat.types'
 
-export const ASSISTANT_NAME = 'Asistente Mercurial'
+export const ASSISTANT_NAME = 'Asistente'
 export const USER_NAME = 'Tú'
 
 export const GREETING_TEXT =
-  '¡Hola! Soy el asistente de Mercurial. Puedo responder consultas sobre RR.HH., ' +
+  '¡Hola! Soy el asistente de Workspace AI. Puedo responder consultas sobre RR.HH., ' +
   'tecnología y finanzas a partir de la base de conocimiento cargada. ¿En qué te ayudo?'
 
-export const THINKING_TEXT = 'Mercurial está procesando tu consulta'
+export const THINKING_TEXT = 'Workspace AI está procesando tu consulta'
 export const ERROR_TEXT = 'No se pudo obtener respuesta. Intentá de nuevo.'
 export const RETRY_LABEL = 'Reintentar'
 

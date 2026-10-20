@@ -6,7 +6,7 @@ import { NAV_ITEMS } from './Sidebar.constants'
 const LINK_BASE_CLASSES =
   'flex items-center gap-3 rounded-lg px-4 py-3 font-medium transition-colors ' +
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary'
-const LINK_ACTIVE_CLASSES = 'bg-primary text-on-primary'
+const LINK_ACTIVE_CLASSES = 'bg-accent text-on-accent'
 const LINK_INACTIVE_CLASSES = 'text-on-surface-variant hover:bg-surface-container'
 
 export const Sidebar = () => {
@@ -27,10 +27,7 @@ export const Sidebar = () => {
         aria-label="Ir al chat"
         className="flex items-center gap-2 px-6 py-8 no-underline"
       >
-        <span role="img" aria-label="Caduceo de Hermes" className="font-serif text-2xl text-primary">
-          ⚕
-        </span>
-        <span className="font-serif text-xl text-primary">Mercurial</span>
+        <span className="font-display text-xl text-primary">Workspace AI</span>
       </Link>
 
       <ul className="flex-1 space-y-2 px-4">
@@ -66,7 +63,7 @@ export const Sidebar = () => {
           aria-label="Cambiar tema"
           onClick={handleThemeToggle}
           className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
-            isDark ? 'bg-primary' : 'bg-surface-container-high'
+            isDark ? 'bg-accent' : 'bg-surface-container-high'
           } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary`}
         >
           <span

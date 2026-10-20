@@ -134,13 +134,12 @@ describe('VisualRedesign — @s9 Tema por defecto es "dark"', () => {
   })
 })
 
-describe('VisualRedesign — @s10 Caduceo visible en el sidebar', () => {
-  it('existe un elemento con aria-label "Caduceo de Hermes" dentro del sidebar', () => {
+describe('VisualRedesign — @s10 Sin caduceo en el sidebar', () => {
+  it('no existe ningún elemento con aria-label "Caduceo de Hermes" en el sidebar', () => {
     renderApp()
-    const caduceo = screen.getByLabelText('Caduceo de Hermes')
-    expect(caduceo).toBeInTheDocument()
+    expect(screen.queryByLabelText('Caduceo de Hermes')).not.toBeInTheDocument()
     const sidebar = screen.getByRole('navigation', { name: /navegación principal/i })
-    expect(sidebar).toContainElement(caduceo)
+    expect(sidebar).not.toHaveTextContent('⚕')
   })
 })
 

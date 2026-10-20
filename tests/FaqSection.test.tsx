@@ -51,10 +51,10 @@ describe('FaqSection', () => {
     expect(screen.getByRole('heading', { level: 1, name: /preguntas frecuentes/i })).toBeInTheDocument()
   })
 
-  // @s6 (adaptado): la ruta "/faq" sigue mostrando el shell global (sidebar con "Mercurial")
-  it('@s6 la ruta "/faq" muestra el sidebar con "Mercurial"', () => {
+  // @s6 (adaptado): la ruta "/faq" sigue mostrando el shell global (sidebar con "Workspace AI")
+  it('@s6 la ruta "/faq" muestra el sidebar con "Workspace AI"', () => {
     renderAppAtRoute('/faq')
-    expect(screen.getByText('Mercurial')).toBeInTheDocument()
+    expect(screen.getByText('Workspace AI')).toBeInTheDocument()
   })
 
   // @s7: enlace "← Volver al chat" visible en /faq

@@ -138,7 +138,7 @@ export const ChatColumn = () => {
             aria-label="Enviar"
             disabled={isLoading}
             onClick={() => submitQuestion(inputValue)}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-on-primary disabled:opacity-40"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent text-on-accent disabled:opacity-40"
           >
             <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
               send

@@ -1,11 +1,11 @@
 import type { MessageBubbleProps } from './MessageBubble.types'
 
-const USER_BUBBLE_CLASSES = 'bg-primary text-on-primary rounded-2xl rounded-tr-sm'
+const USER_BUBBLE_CLASSES = 'bg-accent text-on-accent rounded-2xl rounded-tr-sm'
 const ASSISTANT_BUBBLE_CLASSES =
   'bg-surface-container-low text-on-surface rounded-2xl rounded-tl-sm border border-outline-variant/10'
 
 const USER_AVATAR_CLASSES = 'bg-secondary-container text-on-secondary-container'
-const ASSISTANT_AVATAR_CLASSES = 'bg-primary text-on-primary'
+const ASSISTANT_AVATAR_CLASSES = 'bg-accent text-on-accent'
 
 export const MessageBubble = ({ variant, authorName, text, time }: MessageBubbleProps) => {
   const isUser = variant === 'user'

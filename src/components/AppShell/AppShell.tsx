@@ -1,6 +1,5 @@
 import Sidebar from '../Sidebar'
 import Header from '../Header'
-import GlobalStyles from './GlobalStyles'
 
 export interface AppShellProps {
   children: React.ReactNode
@@ -9,7 +8,6 @@ export interface AppShellProps {
 export const AppShell = ({ children }: AppShellProps) => {
   return (
     <>
-      <GlobalStyles />
       <Sidebar />
       <div className="flex min-h-screen flex-col bg-background pl-72">
         <Header />

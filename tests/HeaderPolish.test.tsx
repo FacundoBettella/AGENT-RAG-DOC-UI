@@ -8,7 +8,7 @@ import AppShell from '../src/components/AppShell/AppShell'
 // suite testeaba originalmente fueron retirados por design-system-shell
 // (decisión 17: el theme toggle se muda al pie del sidebar, sin menú de
 // engranaje). Lo que sigue vigente de header-polish es el enlace de marca
-// ("Mercurial" + caduceo, con aria-label "Ir al chat") que ahora vive en el
+// ("Workspace AI", sin caduceo, con aria-label "Ir al chat") que ahora vive en el
 // sidebar en lugar del header viejo.
 
 function LocationDisplay() {
@@ -39,19 +39,19 @@ function renderShell(initialPath = '/') {
 }
 
 describe('Header Polish', () => {
-  // @s1 — el enlace de marca muestra "Mercurial"
-  it('muestra "Mercurial" en el enlace de marca', () => {
+  // @s1 — el enlace de marca muestra "Workspace AI"
+  it('muestra "Workspace AI" en el enlace de marca', () => {
     renderShell()
-    expect(screen.getByText('Mercurial')).toBeInTheDocument()
+    expect(screen.getByText('Workspace AI')).toBeInTheDocument()
   })
 
   // @s2 — el título es un enlace a "/"
-  it('existe un enlace con href "/" que contiene el texto "Mercurial"', () => {
+  it('existe un enlace con href "/" que contiene el texto "Workspace AI"', () => {
     renderShell()
     const link = screen.getByRole('link', { name: /ir al chat/i })
     expect(link).toBeInTheDocument()
     expect(link).toHaveAttribute('href', '/')
-    expect(link).toHaveTextContent('Mercurial')
+    expect(link).toHaveTextContent('Workspace AI')
   })
 
   // @s3 — aria-label accesible
@@ -106,10 +106,10 @@ describe('Header Polish', () => {
     expect(link.className).toContain('no-underline')
   })
 
-  // @s8 — el caduceo forma parte del enlace
-  it('el símbolo ⚕ está contenido dentro del enlace', () => {
+  // @s8 — el caduceo fue eliminado (brand-restyle @s7)
+  it('el enlace no contiene el símbolo ⚕', () => {
     renderShell()
     const link = screen.getByRole('link', { name: /ir al chat/i })
-    expect(link).toHaveTextContent('⚕')
+    expect(link).not.toHaveTextContent('⚕')
   })
 })

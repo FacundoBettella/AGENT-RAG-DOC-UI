@@ -1,12 +1,4 @@
-import {
-  PageWrapper,
-  PageTitle,
-  BackLink,
-  FaqList,
-  FaqItem,
-  FaqQuestion,
-  FaqAnswer,
-} from './FaqPage.styles'
+import { Link } from 'react-router-dom'
 
 type FaqEntry = { question: string; answer: string }
 
@@ -20,7 +12,7 @@ const FAQ_ENTRIES: FaqEntry[] = [
   {
     question: '¿Cómo funciona el sistema de búsqueda?',
     answer:
-      'Mercurial usa un sistema RAG (Retrieval-Augmented Generation): primero busca los fragmentos más ' +
+      'Workspace AI usa un sistema RAG (Retrieval-Augmented Generation): primero busca los fragmentos más ' +
       'relevantes en la base de conocimiento cargada por el equipo de RR.HH. y luego genera una respuesta ' +
       'en lenguaje natural basada en esos fragmentos.',
   },
@@ -46,25 +38,32 @@ const FAQ_ENTRIES: FaqEntry[] = [
   {
     question: '¿Qué pasa si el sistema no sabe la respuesta?',
     answer:
-      'Mercurial indicará que no encontró información suficiente y te recomendará consultar directamente ' +
+      'Workspace AI indicará que no encontró información suficiente y te recomendará consultar directamente ' +
       'con RR.HH. No inventa respuestas cuando no hay base documental.',
   },
 ]
 
 function FaqPage() {
   return (
-    <PageWrapper>
-      <PageTitle>Preguntas frecuentes</PageTitle>
-      <BackLink to="/">← Volver al chat</BackLink>
-      <FaqList>
+    <div className="mx-auto max-w-[700px] overflow-x-hidden px-5 py-8">
+      <h1 className="mb-4 font-display text-2xl text-primary">Preguntas frecuentes</h1>
+      <Link
+        to="/"
+        className="mb-8 inline-block text-sm text-on-surface-variant no-underline hover:text-primary"
+      >
+        ← Volver al chat
+      </Link>
+      <section className="flex flex-col gap-6">
         {FAQ_ENTRIES.map((entry) => (
-          <FaqItem key={entry.question}>
-            <FaqQuestion>{entry.question}</FaqQuestion>
-            <FaqAnswer>{entry.answer}</FaqAnswer>
-          </FaqItem>
+          <article key={entry.question}>
+            <h2 className="mb-2 text-[1.05rem] text-on-surface">{entry.question}</h2>
+            <p className="m-0 text-[0.95rem] leading-[1.6] text-on-surface-variant">
+              {entry.answer}
+            </p>
+          </article>
         ))}
-      </FaqList>
-    </PageWrapper>
+      </section>
+    </div>
   )
 }
 
