@@ -120,7 +120,7 @@ export async function login(email: string, password: string) {
 ## Trazabilidad obligatoria
 
 Al cerrar, cada `@s` debe estar cubierto por al menos un test concreto.
-El `developer` escribe el mapa en `specs/<feature>/tdd.md`:
+El `developer` escribe el mapa en `specs/<feature>/testing.md`:
 
 ```markdown
 ## Trazabilidad

@@ -25,9 +25,9 @@ __pycache__/
 .DS_Store
 
 init.sh
-.sdd-harness-version
 docs/
 profiles/
 progress/*
 !progress/dev-report.md
 CLAUDE.md.bak
+.eynstein-version

@@ -4,9 +4,8 @@
 > NO es una biblia de reglas: es un **mapa**. Leé solo lo que necesitás
 > cuando lo necesitás (divulgación progresiva).
 >
-> **Rama `uncle-bob-harness`** — flujo estilo Robert C. Martin:
-> conversación → Gherkin → implementación (TDD o test-after) → review.
-> Ver `docs/workflow.md`.
+> **Flujo del harness:** conversación → Gherkin → implementación
+> (TDD o test-after) → review. Ver `docs/workflow.md`.
 
 ---
 
@@ -27,7 +26,7 @@
 | `progress/current.md`        | Estado de sesión local (personal, no versionado en squad mode)             | Opcional, al empezar |
 | `project-spec.md`            | Overview de proyecto + índice con links a `specs/<name>/spec.md`            | Para orientarse; no leer completo por feature |
 | `specs/<name>/spec.md`       | Spec de la feature: Propósito + Contrato + Decisiones                       | Antes de destilar Gherkin o implementar |
-| `specs/<name>/tdd.md`        | Mapa `@s → test` (trazabilidad obligatoria, versionada)                     | Al revisar cobertura |
+| `specs/<name>/testing.md`    | Mapa `@s → test` (trazabilidad obligatoria, versionada)                     | Al revisar cobertura |
 | `features/<name>.feature`    | Escenarios Gherkin (el contrato ejecutable que el humano aprueba)           | Antes de empezar a implementar |
 | `docs/workflow.md`           | El pipeline completo y los insights de cada fase                            | Antes de coordinar |
 | `docs/tdd.md`                | Las Tres Leyes del TDD; el ciclo Rojo-Verde-Refactor (modo TDD estricto)    | Antes de escribir código, si el humano eligió TDD |
@@ -68,15 +67,19 @@ El `.feature` es el contrato ejecutable (lo que se prueba). `specs/<name>/spec.m
 - **No declarés una tarea `done` sin pruebas verdes.** Ejecutá `./init.sh`
   antes de cerrar.
 - **No saltés la conversación de spec ni la destilación Gherkin.** Toda
-  feature con `"sdd": true` pasa por `analyst` y `bdd-writer`.
+  feature con `"sdd": true` pasa por `analyst` y `bdd-writer`. Con
+  `"sdd": false` (camino rápido, solo si el humano lo pide explícito —
+  nunca por default) sí se saltean: ver "Camino rápido" en
+  `agents/tech-lead.md`.
 - **No saltés la puerta de aprobación humana** sobre los `.feature`. El
   `tech-lead` detiene el flujo en `spec_ready` y espera.
-- **No saltés la elección de modo.** Antes de lanzar al `developer`, el
+- **No saltés la elección de modo.** Al dar de alta la feature, el
   `tech-lead` pregunta al humano: TDD estricto (`docs/tdd.md`, un test a
   la vez, nada de producción sin un test rojo que la pida) o test-after
-  (`docs/testing-test-after.md`, implementar y testear después). En
-  cualquier modo, ningún `@s` queda sin al menos un test concreto que lo
-  verifique.
+  (`docs/testing-test-after.md`, implementar y testear después), y lo
+  escribe en `"mode"`. Ninguna feature entra a `feature_list.json` sin
+  `"sdd"`, `"mode"` y `"measure"`. En cualquier modo, ningún `@s` queda
+  sin al menos un test concreto que lo verifique.
 - **No subás bitácoras personales** (`progress/current.md`).
 - **Dejá el repositorio limpio** antes de cerrar la sesión (ver §5).
 - **Si no sabés algo, buscá en `docs/`** antes de inventarlo.
@@ -90,7 +93,7 @@ pending
   → ⏸ HUMANO APRUEBA los escenarios
   → ⏸ HUMANO ELIGE modo: TDD estricto o test-after
   → in_progress
-  → [developer]  TDD (Rojo→Verde→Refactor) o test-after → specs/<name>/tdd.md
+  → [developer]  TDD (Rojo→Verde→Refactor) o test-after → specs/<name>/testing.md
   → [reviewer]   review (el juego entero)
   → done
 ```
@@ -99,11 +102,16 @@ pending
 2. Lanza `analyst` (conversa y debate) → `specs/<feature>/spec.md`.
 3. Lanza `bdd-writer` → `features/<name>.feature`, status `spec_ready`.
 4. **Pausa.** El humano lee los escenarios y aprueba (o pide cambios).
-5. **Pausa.** El `tech-lead` pregunta el modo de implementación (TDD estricto o test-after) para esa feature.
+5. El modo de implementación (TDD estricto o test-after) ya está en `"mode"`: se eligió al dar de alta la feature. Si es una feature vieja sin el campo, **pausa** y el `tech-lead` lo pregunta.
 6. Aprobado y con modo elegido → status `in_progress` y lanza `developer` con el modo elegido.
-7. El `developer` implementa en el modo indicado (ver `docs/tdd.md` o `docs/testing-test-after.md`) y escribe `specs/<feature>/tdd.md` con el modo usado y el mapa `@s → test`.
+7. El `developer` implementa en el modo indicado (ver `docs/tdd.md` o `docs/testing-test-after.md`) y escribe `specs/<feature>/testing.md` con el modo usado y el mapa `@s → test`.
 8. El `reviewer` revisa cobertura, disciplina de testing (según el modo) y calidad; aprueba o rechaza.
 9. Si aprueba, el `developer` marca `done`.
+
+Este es el pipeline completo (`"sdd": true`). Para un cambio menor que el
+humano pide explícitamente sin ceremonia de spec, existe un camino más
+corto (`"sdd": false`) que saltea los pasos 2-4 pero mantiene el resto sin
+excepción — ver "Camino rápido" en `agents/tech-lead.md`.
 
 ## 5. Cierre de sesión (lifecycle)
 

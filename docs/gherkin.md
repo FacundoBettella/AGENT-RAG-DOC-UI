@@ -111,5 +111,5 @@ escenario:
 El `developer` escribe estos tests uno a uno (Rojo→Verde→Refactor, si el
 modo elegido es TDD estricto) o después de implementar (modo test-after,
 ver `docs/testing-test-after.md`), y deja el mapa en
-`specs/<feature>/tdd.md`. Así el `.feature` sigue siendo la fuente de
+`specs/<feature>/testing.md`. Así el `.feature` sigue siendo la fuente de
 verdad legible por el humano, sin pagar el coste de un framework.

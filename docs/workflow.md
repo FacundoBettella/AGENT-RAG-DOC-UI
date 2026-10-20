@@ -1,12 +1,11 @@
-# El flujo Uncle Bob (Harness Engineering, edición artesano)
+# El flujo del harness (Harness Engineering, edición artesano)
 
-> Este flujo organiza el desarrollo alrededor del proceso que Robert C.
-> Martin describe en su hilo: **conversar la spec, destilarla en escenarios
-> Gherkin, tallar el código con TDD estricto (o test-after, si el humano lo
-> prefiere para esa feature) y podar con juicio**. Lo que enseña este doc
-> es el *proceso* — es agnóstico al stack; las menciones concretas (RTL,
-> Vitest) son del perfil react y tu perfil activo tiene sus equivalentes en
-> `profiles/active/`.
+> Este flujo organiza el desarrollo en cuatro pasos: **conversar la spec,
+> destilarla en escenarios Gherkin, tallar el código con TDD estricto (o
+> test-after, si el humano lo prefiere para esa feature) y podar con
+> juicio**. Lo que enseña este doc es el *proceso* — es agnóstico al stack;
+> las menciones concretas (RTL, Vitest) son del perfil react y tu perfil
+> activo tiene sus equivalentes en `profiles/active/`.
 
 ## El pipeline de un vistazo
 
@@ -23,7 +22,7 @@ pending
   │  ⏸  PUERTA HUMANA: ¿TDD estricto o test-after? (por feature)
   │
 in_progress
-  │  developer — TDD (Rojo→Verde→Refactor) o test-after ───►  src/ + tests/ + specs/<name>/tdd.md
+  │  developer — TDD (Rojo→Verde→Refactor) o test-after ───►  src/ + tests/ + specs/<name>/testing.md
   │      TDD: un test a la vez, las Tres Leyes. Test-after: implementa y
   │      luego blinda con tests que muerden. Ver docs/tdd.md y
   │      docs/testing-test-after.md.
@@ -97,7 +96,7 @@ tiene que morder — pasar si el código está bien, fallar si se rompe. En
 TDD eso lo garantiza el ciclo Rojo→Verde. En test-after lo garantiza el
 protocolo de `docs/testing-test-after.md`: implementar, escribir el test
 después, y demostrar a mano que falla si se rompe la implementación.
-`specs/<feature>/tdd.md` registra qué modo se usó.
+`specs/<feature>/testing.md` registra qué modo se usó.
 
 ### 5. El review es el juego entero
 
@@ -107,15 +106,48 @@ Generar borradores es barato (el modelo teclea infinito). El valor escaso
 es el **juicio** que decide qué sobrevive. El `reviewer` no edita: poda. Si un
 escenario no tiene test, o hay código que nadie pidió, rechaza.
 
+### 6. El camino rápido: `sdd: false`
+
+El pipeline de arriba tiene un costo real (dos fases + una puerta humana) que
+tiene sentido cuando el comportamiento merece discutirse y documentarse. No
+siempre lo merece: a veces el humano ya sabe exactamente qué cambio quiere y
+no necesita conversarlo con el `analyst`. Forzar la ceremonia completa ahí
+frena sin agregar valor.
+
+La salida no es un mecanismo nuevo — es el flag `sdd` que ya vive en el
+schema de `feature_list.json` (`sdd_required_when: "feature has \"sdd\":
+true"`), formalizado en el protocolo del `tech-lead`:
+
+```
+pending → in_progress → developer → reviewer → done
+```
+
+Se saltean `analyst`, `bdd-writer` y la puerta de aprobación de escenarios
+(no hay `.feature` que aprobar). Todo lo demás es igual: la elección de modo
+(TDD o test-after), el `developer` implementando con tests reales, la puerta
+visual si aplica, y el `reviewer` — nunca se saltea, es el paso que
+efectivamente protege la calidad, con o sin Gherkin de por medio.
+
+**La decisión es siempre del humano, nunca del `tech-lead`.** Igual que la
+elección de modo no se infiere ni se hereda, "esto es un cambio menor" no se
+deduce del tamaño del diff — un cambio de tres líneas en lógica de permisos
+no es "menor" en el sentido que importa. El `tech-lead` nunca decide esto
+por su cuenta.
+
+**El registro no se saltea nunca.** La feature vive en `feature_list.json`
+con `"sdd": false` igual que cualquier otra — es el único ledger que queda
+una vez que no hay spec ni Gherkin, y las reglas de `team_mode` y
+`max_in_progress_per_owner` dependen de que toda feature en curso esté ahí.
+
 ## Mapa de artefactos (quién escribe qué)
 
 | Archivo                          | Lo escribe             | Contiene                                            |
 |----------------------------------|------------------------|-----------------------------------------------------|
 | `project-spec.md`                | tech-lead (índice)     | Overview de proyecto + índice de features con links |
-| `specs/<name>/spec.md`           | analyst                | Propósito + Contrato + Decisiones de la feature     |
-| `features/<name>.feature`        | bdd-writer             | Escenarios Gherkin `@s1..@sn` (el contrato firmado) |
+| `specs/<name>/spec.md`           | analyst                | Propósito + Contrato + Decisiones de la feature (solo `sdd: true`) |
+| `features/<name>.feature`        | bdd-writer              | Escenarios Gherkin `@s1..@sn` (el contrato firmado, solo `sdd: true`) |
 | `src/`, `tests/`                 | developer              | Código y tests, en TDD o test-after (elección humana) |
-| `specs/<name>/tdd.md`            | developer              | Modo usado + mapa `@s → test` (trazabilidad obligatoria) |
+| `specs/<name>/testing.md`        | developer              | Modo usado + mapa `@s → test` (`sdd: true`) o lista de tests (`sdd: false`) — trazabilidad obligatoria en ambos casos |
 | `feature_list.json`              | tech-lead / developer  | `pending → spec_ready → in_progress → done`         |
 
 Regla anti-teléfono-descompuesto: los subagentes escriben en disco y

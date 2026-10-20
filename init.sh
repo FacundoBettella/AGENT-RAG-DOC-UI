@@ -24,14 +24,14 @@ warn()  { printf "${YELLOW}[WARN]${NC}  %s\n" "$1"; }
 fail()  { printf "${RED}[FAIL]${NC}  %s\n" "$1"; }
 
 # Version del harness que estas consumiendo. En un repo consumidor la estampa
-# scaffold.sh en .sdd-harness-version; en el repo fuente del plugin se lee
+# scaffold.sh en .eynstein-version; en el repo fuente del plugin se lee
 # directo de plugin.json. (Sin node aun: extraccion por grep.)
 read_harness_version() {
-  if [ -f ".sdd-harness-version" ]; then
-    head -n1 .sdd-harness-version | tr -d '[:space:]'
+  if [ -f ".eynstein-version" ]; then
+    head -n1 .eynstein-version | tr -d '[:space:]'
     return
   fi
-  local pj="plugins/sdd-harness/.claude-plugin/plugin.json"
+  local pj="plugins/eynstein/.claude-plugin/plugin.json"
   if [ -f "$pj" ]; then
     grep -o '"version"[[:space:]]*:[[:space:]]*"[^"]*"' "$pj" 2>/dev/null \
       | head -n1 | grep -o '"[^"]*"$' | tr -d '"'
@@ -49,7 +49,7 @@ cat << 'BANNER'
 \__ \| |) | |) |  | __ / _` | '_| ' \/ -_|_-<(_-<
 |___/|___/|___/   |_||_\__,_|_| |_||_\___/__//__/
 BANNER
-printf "${GREEN}EY FSO SDD Harness${NC}\n"
+printf "${GREEN}EY FSO EYnstein${NC}\n"
 printf "${NC}"
 printf "${GREEN}                                       v%s${NC}\n" "$HARNESS_VERSION"
 echo ""
@@ -92,10 +92,10 @@ fi
 
 # Plugin instalado (verificacion informativa)
 if command -v claude >/dev/null 2>&1; then
-  if claude plugins list 2>/dev/null | grep -q "sdd-harness"; then
-    ok "Plugin sdd-harness instalado"
+  if claude plugins list 2>/dev/null | grep -q "eynstein"; then
+    ok "Plugin eynstein instalado"
   else
-    warn "Plugin sdd-harness no detectado — ejecuta en Claude Code: /plugin install sdd-harness"
+    warn "Plugin eynstein no detectado — ejecuta en Claude Code: /plugin install eynstein"
   fi
 else
   warn "CLI claude no disponible — verificacion de plugin omitida"
@@ -106,6 +106,34 @@ if [ ! -d "features" ]; then
   warn "No existe directorio features/ todavia"
 else
   ok "Existe features/"
+fi
+
+echo ""
+echo "-- 2b. Nombre del humano -------------------------------------------"
+
+# Sin pregunta interactiva a proposito: 'git config user.name' es una fuente
+# confiable y ya esta ahi. Si al humano no le calza (nombre de usuario del
+# sistema, apodo raro), edita progress/.humano.json a mano -- mas simple que
+# interrumpir con un prompt que ademas no dispara en modo no interactivo
+# (hooks Stop/SessionStart, que corren init.sh sin TTY).
+HUMANO_FILE="progress/.humano.json"
+if [ -f "$HUMANO_FILE" ]; then
+  ok "Ya conocemos el nombre (progress/.humano.json)"
+elif ! command -v git >/dev/null 2>&1; then
+  ok "Sin git disponible — seguimos sin nombre"
+else
+  GIT_NAME=$(git config user.name 2>/dev/null || true)
+  if [ -z "$GIT_NAME" ]; then
+    ok "Sin 'git config user.name' configurado — seguimos sin nombre"
+  else
+    mkdir -p progress
+    if $NODE_AVAILABLE; then
+      node -e "require('fs').writeFileSync(process.argv[1], JSON.stringify({nombre: process.argv[2]}, null, 2) + '\n')" "$HUMANO_FILE" "$GIT_NAME"
+    else
+      printf '{\n  "nombre": "%s"\n}\n' "$GIT_NAME" > "$HUMANO_FILE"
+    fi
+    ok "Te vamos a llamar '$GIT_NAME' (de 'git config user.name'). Si preferís otro nombre, editá $HUMANO_FILE"
+  fi
 fi
 
 echo ""
@@ -160,6 +188,13 @@ try {
   if (errors.length > 0) {
     errors.forEach(e => console.log('[FAIL]  ' + e));
     process.exit(1);
+  }
+  // Toda feature entra con "mode": sin el, el tech-lead tiene que frenar a
+  // preguntarlo y el panel de eynstein-mods lo muestra "sin elegir". Solo
+  // avisa: las features viejas no traen el campo y no por eso esta roto.
+  const sinModo = data.features.filter(f => f.status !== 'done' && f.mode !== 'tdd' && f.mode !== 'test-after');
+  for (const f of sinModo) {
+    console.log(`[WARN]  feature ${f.id} (${f.name}) sin "mode": el tech-lead lo va a preguntar antes del developer`);
   }
   console.log(`[OK]    feature_list.json valido (${data.features.length} features)`);
   if (teamMode) {
@@ -277,6 +312,27 @@ else
       fi
     done <<< "$REQUIRED_CMDS"
   fi
+fi
+
+echo ""
+echo "-- 3d. Dev container (opcional) ------------------------------------"
+
+# Convencion (skill infra-docker): docker-compose.yml/compose.yaml con un
+# servicio llamado 'dev'. up -d es idempotente -- si ya esta corriendo con
+# la misma config, solo confirma el estado (no reinicia, no rebuildea).
+# Mantenerlo arriba en cada corrida de init.sh (Stop hook, cada turno) es
+# lo que permite que test.sh (seccion 4 y el hook PostToolUse) encuentre
+# el contenedor listo y delegue ahi en vez de caer al host.
+if command -v docker >/dev/null 2>&1 \
+   && docker compose config --services >/dev/null 2>&1 \
+   && docker compose config --services 2>/dev/null | grep -qx dev; then
+  if MSYS_NO_PATHCONV=1 MSYS2_ARG_CONV_EXCL='*' docker compose up -d dev >/dev/null 2>&1; then
+    ok "Dev container 'dev' activo (docker compose up -d dev)"
+  else
+    warn "Dev container 'dev' declarado pero no pudo levantarse — revisa 'docker compose up dev' a mano"
+  fi
+else
+  ok "Sin dev container declarado — flujo host"
 fi
 
 echo ""
