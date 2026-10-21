@@ -1,5 +1,7 @@
 export { ChatColumn } from './ChatColumn'
 export { ContextPanel } from './ContextPanel'
+export { FeedbackButtons } from './FeedbackButtons'
+export type { FeedbackButtonsProps } from './FeedbackButtons'
 export { MessageBubble } from './MessageBubble'
 export type { MessageBubbleProps, MessageBubbleVariant } from './MessageBubble'
 export { SourceCard } from './SourceCard'

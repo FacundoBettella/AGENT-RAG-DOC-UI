@@ -17,6 +17,7 @@ function HrChat() {
     setInputValue,
     submitQuestion,
     handleRetry,
+    sendFeedback,
   } = useHrChat()
 
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -55,6 +56,7 @@ function HrChat() {
       setInputValue,
       submitQuestion: handleSubmit,
       handleRetry,
+      sendFeedback,
       handleSuggestionClick,
       textareaRef,
       bottomRef,
@@ -72,6 +74,7 @@ function HrChat() {
       setInputValue,
       handleSubmit,
       handleRetry,
+      sendFeedback,
       handleSuggestionClick,
       lastChunks,
     ]

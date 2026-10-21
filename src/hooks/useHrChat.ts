@@ -2,12 +2,28 @@ import { useState, useCallback } from 'react'
 import { hrService, type HrChunk } from '../services/hrService'
 import { analyticsService } from '../services/analyticsService'
 
+export interface ExchangeFeedback {
+  vote: boolean | null
+  confirmedVote: boolean | null
+  isSending: boolean
+  hasError: boolean
+}
+
 export interface Exchange {
   question: string
   answer: string
   chunks: HrChunk[]
   askedAt: number
   answeredAt: number
+  traceId: string | null
+  feedback: ExchangeFeedback
+}
+
+const INITIAL_FEEDBACK: ExchangeFeedback = {
+  vote: null,
+  confirmedVote: null,
+  isSending: false,
+  hasError: false,
 }
 
 export interface UseHrChatReturn {
@@ -20,6 +36,7 @@ export interface UseHrChatReturn {
   setInputValue: (value: string) => void
   submitQuestion: (question: string) => Promise<void>
   handleRetry: () => void
+  sendFeedback: (index: number, helpful: boolean) => Promise<void>
 }
 
 export function useHrChat(): UseHrChatReturn {
@@ -43,10 +60,18 @@ export function useHrChat(): UseHrChatReturn {
     analyticsService.trackEvent('chat_message_sent', { question_length: trimmed.length })
 
     try {
-      const { answer, chunks } = await hrService.query(trimmed)
+      const { answer, chunks, traceId } = await hrService.query(trimmed)
       setExchanges((prev) => [
         ...prev,
-        { question: trimmed, answer, chunks, askedAt, answeredAt: Date.now() },
+        {
+          question: trimmed,
+          answer,
+          chunks,
+          askedAt,
+          answeredAt: Date.now(),
+          traceId,
+          feedback: INITIAL_FEEDBACK,
+        },
       ])
       setPendingQuestion(null)
     } catch {
@@ -63,6 +88,35 @@ export function useHrChat(): UseHrChatReturn {
     submitQuestion(lastQuestion)
   }, [lastQuestion, submitQuestion])
 
+  const updateFeedback = useCallback((index: number, patch: Partial<ExchangeFeedback>) => {
+    setExchanges((prev) =>
+      prev.map((exchange, i) =>
+        i === index ? { ...exchange, feedback: { ...exchange.feedback, ...patch } } : exchange
+      )
+    )
+  }, [])
+
+  const sendFeedback = useCallback(
+    async (index: number, helpful: boolean) => {
+      const exchange = exchanges[index]
+      if (!exchange || exchange.traceId === null) return
+      if (exchange.feedback.isSending || exchange.feedback.vote === helpful) return
+
+      updateFeedback(index, { vote: helpful, isSending: true })
+      try {
+        await hrService.sendFeedback(exchange.traceId, helpful)
+        updateFeedback(index, { confirmedVote: helpful, isSending: false, hasError: false })
+      } catch {
+        updateFeedback(index, {
+          vote: exchange.feedback.confirmedVote,
+          isSending: false,
+          hasError: true,
+        })
+      }
+    },
+    [exchanges, updateFeedback]
+  )
+
   return {
     exchanges,
     isLoading,
@@ -73,5 +127,6 @@ export function useHrChat(): UseHrChatReturn {
     setInputValue,
     submitQuestion,
     handleRetry,
+    sendFeedback,
   }
 }

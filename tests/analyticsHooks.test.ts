@@ -46,7 +46,7 @@ afterEach(() => {
 // ──────────────────────────────────────────────
 describe('useHrChat — @s1: chat_message_sent al enviar pregunta', () => {
   it('trackEvent es llamado con "chat_message_sent" y question_length al enviar', async () => {
-    mockedQuery.mockResolvedValue({ answer: 'Respuesta OK', chunks: [] })
+    mockedQuery.mockResolvedValue({ answer: 'Respuesta OK', chunks: [], traceId: null })
     const { useHrChat } = await import('../src/hooks/useHrChat')
     const { result } = renderHook(() => useHrChat())
 
@@ -64,7 +64,7 @@ describe('useHrChat — @s1: chat_message_sent al enviar pregunta', () => {
 // ──────────────────────────────────────────────
 describe('useHrChat — @s2: el payload no contiene el texto de la pregunta', () => {
   it('trackEvent es llamado con question_length pero sin el texto de la pregunta', async () => {
-    mockedQuery.mockResolvedValue({ answer: 'Respuesta OK', chunks: [] })
+    mockedQuery.mockResolvedValue({ answer: 'Respuesta OK', chunks: [], traceId: null })
     const { useHrChat } = await import('../src/hooks/useHrChat')
     const { result } = renderHook(() => useHrChat())
 
@@ -89,7 +89,7 @@ describe('useHrChat — @s3: chat_retry_clicked al hacer click en Reintentar', (
   it('trackEvent es llamado con "chat_retry_clicked" y question_length=20 al reintentar', async () => {
     mockedQuery
       .mockRejectedValueOnce(new Error('Network error'))
-      .mockResolvedValueOnce({ answer: 'ok', chunks: [] })
+      .mockResolvedValueOnce({ answer: 'ok', chunks: [], traceId: null })
 
     const { useHrChat } = await import('../src/hooks/useHrChat')
     const { result } = renderHook(() => useHrChat())
@@ -198,7 +198,7 @@ describe('useHrChat — @s10: chat_message_sent se dispara antes del fetch', () 
     mockedTrackEvent.mockImplementation(() => { callOrder.push('trackEvent') })
     mockedQuery.mockImplementation(async () => {
       callOrder.push('query')
-      return { answer: 'ok', chunks: [] }
+      return { answer: 'ok', chunks: [], traceId: null }
     })
 
     const { useHrChat } = await import('../src/hooks/useHrChat')

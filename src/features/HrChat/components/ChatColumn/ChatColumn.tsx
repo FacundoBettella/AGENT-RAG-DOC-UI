@@ -11,6 +11,7 @@ import {
   INPUT_DISCLAIMER,
 } from '../../HrChat.constants'
 import { formatMessageTime } from '../../HrChat.utils'
+import FeedbackButtons from '../FeedbackButtons'
 import MessageBubble from '../MessageBubble'
 
 export const ChatColumn = () => {
@@ -23,6 +24,7 @@ export const ChatColumn = () => {
     setInputValue,
     submitQuestion,
     handleRetry,
+    sendFeedback,
     textareaRef,
     bottomRef,
     pendingAskedAtRef,
@@ -39,7 +41,7 @@ export const ChatColumn = () => {
       bottomRef.current.scrollIntoView({ behavior: 'smooth' })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [exchanges, isLoading])
+  }, [exchanges.length, isLoading])
 
   useEffect(() => {
     if (!isLoading) {
@@ -81,6 +83,14 @@ export const ChatColumn = () => {
               text={exchange.answer}
               time={formatMessageTime(exchange.answeredAt)}
             />
+            {exchange.traceId !== null && (
+              <div className="pl-12">
+                <FeedbackButtons
+                  feedback={exchange.feedback}
+                  onVote={(helpful) => sendFeedback(index, helpful)}
+                />
+              </div>
+            )}
           </div>
         ))}
 

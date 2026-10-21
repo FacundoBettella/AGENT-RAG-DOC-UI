@@ -42,7 +42,7 @@ describe('HrChat — foco automático en el textarea al cargar', () => {
 
 describe('HrChat — Enter envía la pregunta', () => {
   it('muestra el bubble con la pregunta al presionar Enter', async () => {
-    mockedQuery.mockResolvedValue({ answer: 'Respuesta OK', chunks: [] })
+    mockedQuery.mockResolvedValue({ answer: 'Respuesta OK', chunks: [], traceId: null })
     const user = userEvent.setup()
     render(<HrChat />)
     const textarea = screen.getByRole('textbox', { name: 'Escribe tu pregunta' })
@@ -78,7 +78,7 @@ describe('HrChat — indicador de pensando mientras la API responde', () => {
 
 describe('HrChat — la respuesta aparece como bubble; indicador desaparece', () => {
   it('muestra la respuesta y el indicador desaparece', async () => {
-    mockedQuery.mockResolvedValue({ answer: 'Tenés 15 días hábiles', chunks: [] })
+    mockedQuery.mockResolvedValue({ answer: 'Tenés 15 días hábiles', chunks: [], traceId: null })
     const user = userEvent.setup()
     render(<HrChat />)
     await user.type(screen.getByRole('textbox', { name: 'Escribe tu pregunta' }), 'Pregunta')
@@ -92,7 +92,7 @@ describe('HrChat — la respuesta aparece como bubble; indicador desaparece', ()
 
 describe('HrChat — input se rehabilita y recupera foco tras respuesta', () => {
   it('el textarea está habilitado y con foco tras recibir respuesta', async () => {
-    mockedQuery.mockResolvedValue({ answer: 'Respuesta OK', chunks: [] })
+    mockedQuery.mockResolvedValue({ answer: 'Respuesta OK', chunks: [], traceId: null })
     const user = userEvent.setup()
     render(<HrChat />)
     await user.type(screen.getByRole('textbox', { name: 'Escribe tu pregunta' }), 'Pregunta')
@@ -165,7 +165,7 @@ describe('HrChat — input habilitado tras error', () => {
 
 describe('HrChat — scroll automático al último mensaje', () => {
   it('llama a scrollIntoView tras recibir respuesta', async () => {
-    mockedQuery.mockResolvedValue({ answer: 'Respuesta OK', chunks: [] })
+    mockedQuery.mockResolvedValue({ answer: 'Respuesta OK', chunks: [], traceId: null })
     const scrollMock = vi.fn()
     window.HTMLElement.prototype.scrollIntoView = scrollMock
     const user = userEvent.setup()
@@ -192,7 +192,7 @@ describe('HrChat — doble envío imposible mientras carga', () => {
 describe('HrChat — pregunta de 501 caracteres se envía completa', () => {
   it('envía y muestra correctamente una pregunta de 501 caracteres', async () => {
     const longQuestion = 'B'.repeat(501)
-    mockedQuery.mockResolvedValue({ answer: 'Respuesta OK', chunks: [] })
+    mockedQuery.mockResolvedValue({ answer: 'Respuesta OK', chunks: [], traceId: null })
     const user = userEvent.setup()
     render(<HrChat />)
     const textarea = screen.getByRole('textbox', { name: 'Escribe tu pregunta' })
@@ -212,6 +212,7 @@ describe('HrChat — @s1 el saludo persistente muestra la respuesta traducida de
   it('renderiza la respuesta de hrService.query cuando resuelve { answer, chunks }', async () => {
     mockedQuery.mockResolvedValue({
       answer: 'Tenés 21 días de vacaciones.',
+      traceId: null,
       chunks: [{ content: 'Política de licencias...', source: 'manual-rrhh.pdf', similarity: 0.87 }],
     })
     const user = userEvent.setup()
@@ -230,7 +231,7 @@ describe('HrChat — @s1 el saludo persistente muestra la respuesta traducida de
 
 describe('HrChat — @s4 el saludo del asistente permanece visible tras enviar una pregunta', () => {
   it('el saludo sigue presente antes y después de enviar la pregunta', async () => {
-    mockedQuery.mockResolvedValue({ answer: 'Respuesta OK', chunks: [] })
+    mockedQuery.mockResolvedValue({ answer: 'Respuesta OK', chunks: [], traceId: null })
     const user = userEvent.setup()
     render(<HrChat />)
 
@@ -259,7 +260,7 @@ describe('HrChat — @s5 cada burbuja muestra la hora de creación en formato 24
     const realDateNow = Date.now.bind(Date)
     vi.spyOn(Date, 'now').mockReturnValue(fixedDate.getTime())
 
-    mockedQuery.mockResolvedValue({ answer: 'Respuesta con hora', chunks: [] })
+    mockedQuery.mockResolvedValue({ answer: 'Respuesta con hora', chunks: [], traceId: null })
 
     await user.type(screen.getByRole('textbox', { name: 'Escribe tu pregunta' }), 'pregunta')
     await user.keyboard('{Enter}')
@@ -297,7 +298,7 @@ describe('HrChat — @s7 Reintentar reenvía la última pregunta que falló', ()
   it('llama a hrService.query con la última pregunta al hacer clic en Reintentar', async () => {
     mockedQuery
       .mockRejectedValueOnce(new Error('Network error'))
-      .mockResolvedValueOnce({ answer: 'Respuesta en el reintento', chunks: [] })
+      .mockResolvedValueOnce({ answer: 'Respuesta en el reintento', chunks: [], traceId: null })
     const user = userEvent.setup()
     render(<HrChat />)
     await user.type(
@@ -322,6 +323,7 @@ describe('HrChat — @s8 el panel muestra una tarjeta por cada chunk, con la fue
   it('muestra tarjetas con título "manual-rrhh.pdf", "api" y "Base de conocimiento"', async () => {
     mockedQuery.mockResolvedValue({
       answer: 'Respuesta con fuentes',
+      traceId: null,
       chunks: [
         { content: 'contenido 1', source: 'manual-rrhh.pdf', similarity: 0.5 },
         { content: 'contenido 2', source: 'api', similarity: 0.5 },
@@ -343,6 +345,7 @@ describe('HrChat — @s9 el porcentaje de coincidencia se clampea a [0, 100]', (
   it('muestra "100% de coincidencia" y "0% de coincidencia" para valores fuera de rango', async () => {
     mockedQuery.mockResolvedValue({
       answer: 'Respuesta con fuentes',
+      traceId: null,
       chunks: [
         { content: 'contenido alto', source: 'doc-a', similarity: 1.2 },
         { content: 'contenido bajo', source: 'doc-b', similarity: -0.3 },
@@ -373,7 +376,7 @@ describe('HrChat — @s10 antes de la primera respuesta, el panel muestra su est
 
 describe('HrChat — @s11 cuando la última respuesta no citó fragmentos, el panel muestra su estado sin fuentes', () => {
   it('muestra "Esta respuesta no citó fragmentos de la base de conocimiento."', async () => {
-    mockedQuery.mockResolvedValue({ answer: 'Respuesta sin fuentes', chunks: [] })
+    mockedQuery.mockResolvedValue({ answer: 'Respuesta sin fuentes', chunks: [], traceId: null })
     const user = userEvent.setup()
     render(<HrChat />)
     await user.type(screen.getByRole('textbox', { name: 'Escribe tu pregunta' }), 'pregunta')
@@ -391,6 +394,7 @@ describe('HrChat — @s12 durante la carga de una nueva pregunta, el panel conse
   it('sigue mostrando las tarjetas de fuentes del intercambio anterior mientras carga la nueva', async () => {
     mockedQuery.mockResolvedValueOnce({
       answer: 'Primera respuesta',
+      traceId: null,
       chunks: [{ content: 'contenido previo', source: 'doc-previo.pdf', similarity: 0.6 }],
     })
     const user = userEvent.setup()
@@ -444,7 +448,7 @@ describe('HrChat — @s14 al hacer clic en una sugerencia se registra el evento 
 
 describe('HrChat — respuesta larga no desborda el bubble', () => {
   it('la burbuja de mensaje usa whitespace-pre-wrap y break-words', async () => {
-    mockedQuery.mockResolvedValue({ answer: 'a'.repeat(1000), chunks: [] })
+    mockedQuery.mockResolvedValue({ answer: 'a'.repeat(1000), chunks: [], traceId: null })
     const user = userEvent.setup()
     render(<HrChat />)
     await user.type(screen.getByRole('textbox', { name: 'Escribe tu pregunta' }), 'pregunta')

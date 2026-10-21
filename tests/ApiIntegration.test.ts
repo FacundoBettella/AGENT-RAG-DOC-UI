@@ -51,7 +51,7 @@ describe('hrService — @s2: resuelve con un objeto { answer, chunks }, no con u
     const { hrService } = await import('../src/services/hrService')
     const result = await hrService.query('cualquier pregunta')
 
-    expect(result).toEqual({ answer: 'Tenés 21 días de vacaciones.', chunks: [] })
+    expect(result).toEqual({ answer: 'Tenés 21 días de vacaciones.', chunks: [], traceId: null })
     expect(typeof result).not.toBe('string')
   })
 
@@ -563,5 +563,129 @@ describe('fix-rag-fallback-port @s4: ragService.upload pega contra el puerto cor
       'http://localhost:8080/api/ingest',
       { domain: 'hr', documents: ['contenido'] }
     )
+  })
+})
+
+// ──────────────────────────────────────────────
+// hr-chat-feedback — hrService.query (trace_id) — @s1, @s2
+// ──────────────────────────────────────────────
+
+const VALID_TRACE_ID = '4bf92f3577b34da6a3ce929d0e0e4736'
+
+describe('hrService — hr-chat-feedback @s1: devuelve el trace_id válido tal cual llega', () => {
+  it('resuelve con traceId igual al trace_id del backend y answer intacto', async () => {
+    vi.stubEnv('VITE_RAG_API_BASE_URL', 'http://api.mercurial.local')
+    mockedAxiosPost.mockResolvedValue({
+      data: {
+        query_result: {
+          system_answer: 'Tenés 21 días de vacaciones.',
+          chunks_related: [],
+          trace_id: VALID_TRACE_ID,
+        },
+      },
+    })
+
+    const { hrService } = await import('../src/services/hrService')
+    const result = await hrService.query('cualquier pregunta')
+
+    expect(result.traceId).toBe(VALID_TRACE_ID)
+    expect(result.answer).toBe('Tenés 21 días de vacaciones.')
+  })
+})
+
+describe('hrService — hr-chat-feedback @s2: normaliza a null un trace_id ausente, null o mal formado', () => {
+  const MALFORMED: Array<[string, Record<string, unknown>]> = [
+    ['ausente', {}],
+    ['null', { trace_id: null }],
+    ['vacío', { trace_id: '' }],
+    ['en mayúsculas', { trace_id: VALID_TRACE_ID.toUpperCase() }],
+    ['más corto de 32 caracteres', { trace_id: VALID_TRACE_ID.slice(0, 31) }],
+    ['más largo de 32 caracteres', { trace_id: `${VALID_TRACE_ID}a` }],
+    ['con caracteres no hex', { trace_id: `${VALID_TRACE_ID.slice(0, 31)}z` }],
+    ['no string', { trace_id: 12345 }],
+  ]
+
+  it.each(MALFORMED)('trace_id %s: traceId es null y la respuesta se entrega igual', async (_label, extra) => {
+    vi.stubEnv('VITE_RAG_API_BASE_URL', 'http://api.mercurial.local')
+    mockedAxiosPost.mockResolvedValue({
+      data: { query_result: { system_answer: 'Respuesta válida.', chunks_related: [], ...extra } },
+    })
+
+    const { hrService } = await import('../src/services/hrService')
+    const result = await hrService.query('cualquier pregunta')
+
+    expect(result.traceId).toBeNull()
+    expect(result.answer).toBe('Respuesta válida.')
+  })
+})
+
+// ──────────────────────────────────────────────
+// hr-chat-feedback — hrService.sendFeedback — @s3, @s4
+// ──────────────────────────────────────────────
+
+describe('hrService — hr-chat-feedback @s3: sendFeedback envía el voto a /api/feedback y resuelve ante un 2xx', () => {
+  it('hace POST a {base}/api/feedback con { trace_id, helpful } y timeout de 15000 ms', async () => {
+    vi.stubEnv('VITE_RAG_API_BASE_URL', 'http://api.mercurial.local')
+    mockedAxiosPost.mockResolvedValue({
+      status: 200,
+      data: { feedback_result: { trace_id: VALID_TRACE_ID, helpful: true } },
+    })
+
+    const { hrService } = await import('../src/services/hrService')
+    const result = await hrService.sendFeedback(VALID_TRACE_ID, true)
+
+    expect(mockedAxiosPost).toHaveBeenCalledWith(
+      'http://api.mercurial.local/api/feedback',
+      { trace_id: VALID_TRACE_ID, helpful: true },
+      { timeout: 15000 }
+    )
+    expect(result).toBeUndefined()
+  })
+
+  it('resuelve ante un 2xx sin validar el body de respuesta', async () => {
+    vi.stubEnv('VITE_RAG_API_BASE_URL', 'http://api.mercurial.local')
+    mockedAxiosPost.mockResolvedValue({ status: 204, data: '' })
+
+    const { hrService } = await import('../src/services/hrService')
+
+    await expect(hrService.sendFeedback(VALID_TRACE_ID, false)).resolves.toBeUndefined()
+  })
+})
+
+describe('hrService — hr-chat-feedback @s4: sendFeedback lanza siempre el mismo error genérico', () => {
+  const GENERIC_MESSAGE = 'No se pudo registrar tu voto. Intentá de nuevo.'
+
+  const httpFailure = (status: number, error: string) =>
+    Object.assign(new Error(`Request failed with status code ${status}`), {
+      isAxiosError: true,
+      response: { status, data: { error } },
+    })
+
+  const FAILURES: Array<[string, Error, string]> = [
+    ['HTTP 422', httpFailure(422, 'detalle técnico'), 'detalle técnico'],
+    ['HTTP 503', httpFailure(503, 'Tracing deshabilitado'), 'Tracing deshabilitado'],
+    ['HTTP 500', httpFailure(500, 'falló Langfuse'), 'falló Langfuse'],
+    ['un error de red', Object.assign(new Error('Network Error'), { isAxiosError: true }), 'Network Error'],
+    [
+      'un timeout',
+      Object.assign(new Error('timeout of 15000ms exceeded'), {
+        isAxiosError: true,
+        code: 'ECONNABORTED',
+      }),
+      'timeout of 15000ms exceeded',
+    ],
+  ]
+
+  it.each(FAILURES)('%s: rechaza con el mensaje genérico, sin el texto del backend', async (_label, failure, leaked) => {
+    vi.stubEnv('VITE_RAG_API_BASE_URL', 'http://api.mercurial.local')
+    mockedAxiosPost.mockRejectedValue(failure)
+
+    const { hrService } = await import('../src/services/hrService')
+    const rejection = hrService.sendFeedback(VALID_TRACE_ID, false)
+
+    await expect(rejection).rejects.toBeInstanceOf(Error)
+    await expect(rejection).rejects.toThrow(GENERIC_MESSAGE)
+    await expect(rejection).rejects.toHaveProperty('message', GENERIC_MESSAGE)
+    await expect(rejection).rejects.not.toHaveProperty('message', expect.stringContaining(leaked))
   })
 })

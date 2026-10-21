@@ -11,6 +11,11 @@ export const THINKING_TEXT = 'Workspace AI está procesando tu consulta'
 export const ERROR_TEXT = 'No se pudo obtener respuesta. Intentá de nuevo.'
 export const RETRY_LABEL = 'Reintentar'
 
+export const FEEDBACK_GROUP_LABEL = '¿Te sirvió esta respuesta?'
+export const FEEDBACK_HELPFUL_LABEL = 'Respuesta útil'
+export const FEEDBACK_NOT_HELPFUL_LABEL = 'Respuesta no útil'
+export const FEEDBACK_ERROR_TEXT = 'No se pudo registrar tu voto. Intentá de nuevo.'
+
 export const INPUT_PLACEHOLDER = 'Escribí tu consulta sobre RR.HH., tecnología o finanzas…'
 export const INPUT_DISCLAIMER =
   'La IA puede cometer errores. Verificá la información con el área correspondiente.'

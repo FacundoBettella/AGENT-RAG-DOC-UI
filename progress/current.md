@@ -3,11 +3,22 @@
 > Este archivo se vacía al cerrar cada sesión y se mueve a `history.md`.
 > Mientras trabajas, **mantenlo actualizado en tiempo real**, no al final.
 
-- **Feature en curso:** ninguna
+- **Feature en curso:** 19 — hr-chat-feedback (pending, mode tdd, measure true).
+  Spec cerrado (`specs/hr-chat-feedback/spec.md`, 22 decisiones, humano "ok a todo"
+  a las recomendaciones del analyst). `features/hr-chat-feedback.feature` APROBADO
+  por el humano (16 escenarios, @s4 Outline aprobado; corregidos "Mercurial" y título
+  de @s8). Estado `in_progress`. Developer terminó en TDD estricto: 349 tests verdes
+  (verificado por tech-lead con ./init.sh), testing.md con mapa @s1..@s16. Desvío:
+  fix de scroll en ChatColumn (dep `exchanges.length`). Puerta visual OK del humano.
+  Reviewer APROBADO (`specs/hr-chat-feedback/review.md`, observación menor no
+  bloqueante: aria-busy="false" renderizado). Estado `done`. Token-report escrito en
+  `progress/dev-report.md` (peso total 1.758.156, 0h 40m activo). Commiteada y pusheada.
+  Bug del plugin: token-report.mjs arma el slug reemplazando solo `\/:`, no espacios
+  ni `&` — se corrió con SDD_CLAUDE_PROJECTS_DIR apuntando a una junction temporal.
 - **Estado:** features 10-17 DONE. 10-16 commiteadas (3bccd0a chore harness, 7f6123e
   feat 10+11, ccf542f feat 12, 92d0cc2 feat 13, 97ffc80 feat 14, e538292 feat 15+docker,
   1dc9214 fix infra tests/ en Docker, 2c4c716 feat 16, f93917d chore README+red+HMR);
-  17 sin commitear todavía. Repo pusheado a
+  17 commiteada en 0b0e13c, 18 en 8a8132a, 19 en el commit de hr-chat-feedback. Repo pusheado a
   https://github.com/FacundoBettella/AGENT-RAG-DOC-UI.git (remote "origin").
 - **Full Docker**: `node_modules` local ELIMINADO — todo corre por contenedor.
   `profiles/react/test.sh` ahora usa `docker compose exec` en vez de `node

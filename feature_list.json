@@ -207,6 +207,17 @@
       "depends_on": [
         10
       ]
+    },
+    {
+      "id": 19,
+      "name": "hr-chat-feedback",
+      "title": "Feedback 👍/👎 en las respuestas del chat de RR.HH.",
+      "description": "Debajo de cada respuesta del asistente, un 👍 y un 👎 que manden el voto a la RAG API. Contrato (implementado en RAG AGENT API, feature answer-feedback): POST /api/feedback {trace_id, helpful} → 200/422/503/500, ver specs/hr-chat-feedback/api-contract.md. /api/query ahora devuelve trace_id (string hex 32 o null).",
+      "owner": "Facundo Bettella",
+      "sdd": true,
+      "mode": "tdd",
+      "status": "done",
+      "measure": true
     }
   ]
 }

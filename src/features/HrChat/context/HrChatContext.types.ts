@@ -12,6 +12,7 @@ export interface HrChatContextValue {
   setInputValue: (value: string) => void
   submitQuestion: (question: string) => void
   handleRetry: () => void
+  sendFeedback: (index: number, helpful: boolean) => void
   handleSuggestionClick: (suggestion: Suggestion) => void
   textareaRef: RefObject<HTMLTextAreaElement>
   bottomRef: RefObject<HTMLDivElement>
